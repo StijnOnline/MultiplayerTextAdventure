@@ -1,0 +1,52 @@
+{
+  "Events": [
+    {
+      "EventID": 1,
+      "Text": "Testing ID 1",
+      "Options": [
+        {
+          "Input": "2",
+          "Response": "Going to 2",
+          "GoTo": 2
+        },
+        {
+          "Input": "3",
+          "Response": "Going to 3",
+          "GoTo": 3
+        }
+      ]
+    },
+    {
+      "EventID": 2,
+      "Text": "Testing ID 2",
+      "Options": [
+        {
+          "Input": "1",
+          "Response": "Going to 1",
+          "GoTo": 1
+        },
+        {
+          "Input": "3",
+          "Response": "Going to 3",
+          "GoTo": 3
+        }
+      ]
+    },
+    {
+      "EventID": 3,
+      "Text": "Testing ID 3",
+      "Options": [
+        {
+          "Input": "1",
+          "Response": "Going to 1",
+          "GoTo": 1
+        },
+        {
+          "Input": "2",
+          "Response": "Going to 2",
+          "GoTo": 2
+        }
+      ]
+    }
+  ]
+}
