@@ -10,6 +10,7 @@ using Unity.Jobs;
 using UnityEditor;
 using System;
 using Assets.Code.Server;
+using System.Linq;
 
 public class ServerBehaviour : MonoBehaviour {
     private NetworkDriver networkDriver;
@@ -24,6 +25,13 @@ public class ServerBehaviour : MonoBehaviour {
     public AdressedMessageEvent[] ServerCallbacks = new AdressedMessageEvent[(int)Message.MessageType.Count - 1];
 
     private ServerManager serverManager;
+
+    /// <summary>
+    /// KEY (int): Connection ID
+    /// VALUE (float): Last time a message has been sent
+    /// </summary>
+    private Dictionary<int, float> lastSendTimes = new Dictionary<int, float>(ServerManager.maxPlayers);
+    private const float STAY_ALIVE_AFTER_SECONDS = 20;
 
     void Start() {
         serverManager = new ServerManager(this);
@@ -77,6 +85,7 @@ public class ServerBehaviour : MonoBehaviour {
             while((cmd = networkDriver.PopEventForConnection(connections[i], out reader)) != NetworkEvent.Type.Empty) {
                 if(cmd == NetworkEvent.Type.Data) {
                     var messageType = (Message.MessageType)reader.ReadUShort();
+                    Debug.Log("Host Received: " + messageType + " from " + connections[i].InternalId);
                     switch(messageType) {
                         case Message.MessageType.None: //stay alive
                             break;
@@ -96,6 +105,12 @@ public class ServerBehaviour : MonoBehaviour {
         }
 
         ProcessMessagesQueue();
+
+        foreach(KeyValuePair<int,float> lastSendTime in lastSendTimes) {
+            if(Time.time - lastSendTime.Value > STAY_ALIVE_AFTER_SECONDS) {
+                QeueMessage(new AdressedMessage( new NoneMessage(), lastSendTime.Key));
+            }
+        }
         networkJobHandle = networkDriver.ScheduleUpdate();
 
     }
@@ -125,6 +140,11 @@ public class ServerBehaviour : MonoBehaviour {
         var writer = networkDriver.BeginSend(connections[adressedMessage.connectionID]);
         adressedMessage.message.SerializeObject(ref writer);
         networkDriver.EndSend(writer);
+
+        if(!lastSendTimes.ContainsKey(adressedMessage.connectionID))
+            lastSendTimes.Add(adressedMessage.connectionID, Time.time);
+        else
+            lastSendTimes[adressedMessage.connectionID] = Time.time;
 
         Debug.Log("Host Sending Message: " + adressedMessage.message.Type + ", to " + adressedMessage.connectionID);
     }

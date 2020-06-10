@@ -24,6 +24,9 @@ public class ClientBehaviour : MonoBehaviour {
 
     private ClientManager clientManager;
 
+    private float lastSendTime = 0;
+    private const float STAY_ALIVE_AFTER_SECONDS = 20;
+
     public void Connect(string address) {
         Init();
 
@@ -75,6 +78,7 @@ public class ClientBehaviour : MonoBehaviour {
                 Debug.Log("Connected to server");
             } else if(cmd == NetworkEvent.Type.Data) {
                 var messageType = (Message.MessageType)reader.ReadUShort();
+                Debug.Log("Client Received: " + messageType + " from Host");
                 switch(messageType) {
                     case Message.MessageType.None:
                         break;
@@ -105,6 +109,10 @@ public class ClientBehaviour : MonoBehaviour {
             }
         }
         ProcessMessagesQueue();
+
+        if(Time.time - lastSendTime > STAY_ALIVE_AFTER_SECONDS) {
+            SendMessage(new NoneMessage());
+        }
         networkJobHandle = networkDriver.ScheduleUpdate();
     }
 
@@ -128,8 +136,9 @@ public class ClientBehaviour : MonoBehaviour {
         var writer = networkDriver.BeginSend(connection);
         sendMessage.SerializeObject(ref writer);
         networkDriver.EndSend(writer);
+        lastSendTime = Time.time;
 
-        Debug.Log("Client Sending Message: " + sendMessage.Type + ", to Host");
+        Debug.Log("Client Sending Message: " + sendMessage.Type + " to Host");
     }
 
     public void QeueMessage(Message sendMessage) {

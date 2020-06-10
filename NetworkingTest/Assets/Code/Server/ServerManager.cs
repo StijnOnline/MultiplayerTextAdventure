@@ -21,7 +21,6 @@ namespace Assets.Code.Server {
 
             SetNameMessage setNameMessage = (SetNameMessage)adressedMessage.message;
             lobby.players[adressedMessage.connectionID].name = setNameMessage.Name;
-            Debug.Log("Got a name: " + setNameMessage.Name);
             int connectionID = adressedMessage.connectionID;
             NewPlayerMessage newPlayerMessage = new NewPlayerMessage {
                 PlayerID = connectionID,
@@ -38,9 +37,6 @@ namespace Assets.Code.Server {
         }
 
         public void HandleNewConnection(int connectionID) {
-
-            Debug.Log("Sending Welcome");
-
             //welcome to new player
             var color = Color.magenta; //TODO assign random color
             var color32 = (Color32)color;

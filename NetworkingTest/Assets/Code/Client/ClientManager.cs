@@ -16,12 +16,9 @@ namespace Assets.Code.Client {
 
         public void HandleNewPlayer(Message message) {
             NewPlayerMessage newPlayerMessage = (NewPlayerMessage)message;
-            Debug.Log("Received NewPlayerMessage " + newPlayerMessage.PlayerName);
-
             Player newPlayer = new Player(newPlayerMessage.PlayerColor);
             newPlayer.name = newPlayerMessage.PlayerName;
             lobby.AddPlayer(newPlayerMessage.PlayerID, newPlayer);
-
             Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
         }
 
@@ -30,13 +27,8 @@ namespace Assets.Code.Client {
             Player newPlayer = new Player(welcomeMessage.Color);
             newPlayer.name = Login.Username;
             lobby.SetPlayer(welcomeMessage.PlayerID, newPlayer);
-
             Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
-
-            Debug.Log("Received Welcome Message");
-            //SetName(Login.Username);
-
-            //immediately send player name
+            //immediately set player name
             var setNameMessage = new SetNameMessage {
                 Name = Login.Username
             };
