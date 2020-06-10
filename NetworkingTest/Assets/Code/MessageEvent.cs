@@ -7,7 +7,7 @@ using UnityEngine.Events;
 
 namespace Assets.Code
 {
-    public class MessageEvent : UnityEvent<ReceivedMessage>
+    public class MessageEvent : UnityEvent<AdressedMessage>
     {
     }
 }

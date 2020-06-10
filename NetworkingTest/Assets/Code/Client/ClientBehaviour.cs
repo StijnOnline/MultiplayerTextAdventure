@@ -83,8 +83,6 @@ public class ClientBehaviour : MonoBehaviour {
 
                             break;
                         }
-                    case Message.MessageType.SetName:
-                        break;
                     case Message.MessageType.RequestDenied:
                         break;
                     case Message.MessageType.PlayerLeft:
@@ -109,13 +107,9 @@ public class ClientBehaviour : MonoBehaviour {
     }
 
     private void SendMessage(Message message) {
-        //networkJobHandle.Complete();
-
         var writer = networkDriver.BeginSend(connection);
         message.SerializeObject(ref writer);
         networkDriver.EndSend(writer);
-
-        //networkJobHandle = networkDriver.ScheduleUpdate();
     }
 
     public void SetName(string name) {
