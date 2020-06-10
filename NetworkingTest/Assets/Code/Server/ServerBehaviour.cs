@@ -19,7 +19,9 @@ public class ServerBehaviour : MonoBehaviour {
     private Queue<AdressedMessage> receivedMessagesQueue;
     private Queue<AdressedMessage> sendMessagesQueue;
 
-    public MessageEvent[] ServerCallbacks = new MessageEvent[(int)Message.MessageType.Count - 1];
+    //Define Event
+    public class AdressedMessageEvent : UnityEvent<AdressedMessage> { }
+    public AdressedMessageEvent[] ServerCallbacks = new AdressedMessageEvent[(int)Message.MessageType.Count - 1];
 
     private ServerManager serverManager;
 
@@ -43,7 +45,7 @@ public class ServerBehaviour : MonoBehaviour {
 
         //assign all eventlisteners
         for(int i = 0; i < ServerCallbacks.Length; i++) {
-            ServerCallbacks[i] = new MessageEvent();
+            ServerCallbacks[i] = new AdressedMessageEvent();
         }
         ServerCallbacks[(int)Message.MessageType.SetName].AddListener(serverManager.HandleSetName);
 

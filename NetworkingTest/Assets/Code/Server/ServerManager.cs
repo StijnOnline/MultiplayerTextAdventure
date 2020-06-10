@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.GameCenter;
 
 namespace Assets.Code.Server {
     public class ServerManager {

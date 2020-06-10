@@ -5,18 +5,27 @@ using Unity.Networking.Transport;
 using System.IO;
 using Assets.Code;
 using Unity.Jobs;
+using System.Collections.Generic;
+using Assets.Code.Client;
+using UnityEditor.PackageManager;
+using UnityEngine.Events;
 
 public class ClientBehaviour : MonoBehaviour {
     private NetworkDriver networkDriver;
     private NetworkConnection connection;
     private JobHandle networkJobHandle;
 
-    private Lobby lobby = new Lobby();
+    private Queue<Message> receivedMessagesQueue;
+    private Queue<Message> sendMessagesQueue;
 
+    //Define Event
+    public class MessageEvent : UnityEvent<Message> { }
+    public MessageEvent[] ClientCallbacks = new MessageEvent[(int)Message.MessageType.Count - 1];
+
+    private ClientManager clientManager;
 
     public void Connect(string address) {
-        networkDriver = NetworkDriver.Create();
-        connection = default;
+        Init();
 
         NetworkEndPoint endpoint;
         if(NetworkEndPoint.TryParse(address, 9000, out endpoint))
@@ -27,8 +36,7 @@ public class ClientBehaviour : MonoBehaviour {
 
     [ContextMenu("Connect to LocalHost")]
     public void ConnectLocalHost() {
-        networkDriver = NetworkDriver.Create();
-        connection = default;
+        Init();
 
         NetworkEndPoint endpoint;
         endpoint = NetworkEndPoint.LoopbackIpv4;
@@ -37,6 +45,21 @@ public class ClientBehaviour : MonoBehaviour {
         connection = networkDriver.Connect(endpoint);
     }
 
+    private void Init() {
+        clientManager = new ClientManager(this);
+        networkDriver = NetworkDriver.Create();
+        connection = default;
+
+        receivedMessagesQueue = new Queue<Message>();
+        sendMessagesQueue = new Queue<Message>();
+
+        //assign all eventlisteners
+        for(int i = 0; i < ClientCallbacks.Length; i++) {
+            ClientCallbacks[i] = new MessageEvent();
+        }
+        ClientCallbacks[(int)Message.MessageType.NewPlayer].AddListener(clientManager.HandleNewPlayer);
+        ClientCallbacks[(int)Message.MessageType.Welcome].AddListener(clientManager.HandleWelcome);
+    }
 
     void Update() {
         networkJobHandle.Complete();
@@ -56,33 +79,17 @@ public class ClientBehaviour : MonoBehaviour {
                     case Message.MessageType.None:
                         break;
                     case Message.MessageType.NewPlayer: {
-                            var newPlayerMessage = new NewPlayerMessage();
-                            newPlayerMessage.DeserializeObject(ref reader);
-                            Debug.Log("Received NewPlayerMessage " + newPlayerMessage.PlayerName);
-
-                            Player newPlayer = new Player(newPlayerMessage.PlayerColor);
-                            newPlayer.name = newPlayerMessage.PlayerName;
-                            lobby.AddPlayer(newPlayerMessage.PlayerID, newPlayer);
-
-                            Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
-
-                            break;
-                        }
+                        var message = new NewPlayerMessage();
+                        message.DeserializeObject(ref reader);
+                        receivedMessagesQueue.Enqueue(message);
+                        break;
+                    }
                     case Message.MessageType.Welcome: {
-                            var welcomeMessage = new WelcomeMessage();
-                            welcomeMessage.DeserializeObject(ref reader);
-
-                            Player newPlayer = new Player(welcomeMessage.Color);
-                            newPlayer.name = Login.Username;
-                            lobby.SetPlayer(welcomeMessage.PlayerID, newPlayer);
-
-                            Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
-
-                            Debug.Log("Received Welcome Message", gameObject);
-                            SetName(Login.Username);
-
-                            break;
-                        }
+                        var message = new WelcomeMessage();
+                        message.DeserializeObject(ref reader);
+                        receivedMessagesQueue.Enqueue(message);
+                        break;
+                    }
                     case Message.MessageType.RequestDenied:
                         break;
                     case Message.MessageType.PlayerLeft:
@@ -97,7 +104,7 @@ public class ClientBehaviour : MonoBehaviour {
                 connection = default;
             }
         }
-
+        ProcessMessagesQueue();
         networkJobHandle = networkDriver.ScheduleUpdate();
     }
 
@@ -106,17 +113,27 @@ public class ClientBehaviour : MonoBehaviour {
         networkDriver.Dispose();
     }
 
-    private void SendMessage(Message message) {
-        var writer = networkDriver.BeginSend(connection);
-        message.SerializeObject(ref writer);
-        networkDriver.EndSend(writer);
+    private void ProcessMessagesQueue() {
+        while(receivedMessagesQueue.Count > 0) {
+            Message receivedMessage = receivedMessagesQueue.Dequeue();
+            ClientCallbacks[(int)receivedMessage.Type].Invoke(receivedMessage);
+        }
+        while(sendMessagesQueue.Count > 0) {
+            Message sendMessage = sendMessagesQueue.Dequeue();
+            SendMessage(sendMessage);
+        }
     }
 
-    public void SetName(string name) {
-        var setNameMessage = new SetNameMessage {
-            Name = name
-        };
-        SendMessage(setNameMessage);
+    private void SendMessage(Message sendMessage) {
+        var writer = networkDriver.BeginSend(connection);
+        sendMessage.SerializeObject(ref writer);
+        networkDriver.EndSend(writer);
+
+        Debug.Log("Client Sending Message: " + sendMessage.Type + ", to Host");
+    }
+
+    public void QeueMessage(Message sendMessage) {
+        sendMessagesQueue.Enqueue(sendMessage);
     }
 
 
