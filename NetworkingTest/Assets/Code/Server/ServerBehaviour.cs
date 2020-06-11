@@ -27,8 +27,8 @@ public class ServerBehaviour : MonoBehaviour {
     private ServerManager serverManager;
 
     /// <summary>
-    /// KEY (int): Connection ID
-    /// VALUE (float): Last time a message has been sent
+    /// KEY: Connection ID
+    /// VALUE: Last time a message has been sent
     /// </summary>
     private Dictionary<int, float> lastSendTimes = new Dictionary<int, float>(ServerManager.maxPlayers);
     private const float STAY_ALIVE_AFTER_SECONDS = 20;
@@ -71,7 +71,7 @@ public class ServerBehaviour : MonoBehaviour {
         }
 
         NetworkConnection c;
-        while(serverManager.lobby.players.Count < ServerManager.maxPlayers && (c = networkDriver.Accept()) != default) {
+        while(!serverManager.game.started && serverManager.lobby.players.Count < ServerManager.maxPlayers &&  (c = networkDriver.Accept()) != default) {
             connections.Add(c);
             Debug.Log("Accepted connection");
             serverManager.HandleNewConnection(c.InternalId);
@@ -94,11 +94,56 @@ public class ServerBehaviour : MonoBehaviour {
                             message.DeserializeObject(ref reader);
                             receivedMessagesQueue.Enqueue(new AdressedMessage(message, connections[i].InternalId));
                             break;
+                        case Message.MessageType.NewPlayer:
+                            break;
+                        case Message.MessageType.Welcome:
+                            break;
+                        case Message.MessageType.RequestDenied:
+                            break;
+                        case Message.MessageType.PlayerLeft:
+                            break;
+                        case Message.MessageType.StartGame:
+                            break;
+                        case Message.MessageType.PlayerTurn:
+                            break;
+                        case Message.MessageType.RoomInfo:
+                            break;
+                        case Message.MessageType.PlayerEnterRoom:
+                            break;
+                        case Message.MessageType.PlayerLeaveRoom:
+                            break;
+                        case Message.MessageType.ObtainTreasure:
+                            break;
+                        case Message.MessageType.HitMonster:
+                            break;
+                        case Message.MessageType.HitByMonster:
+                            break;
+                        case Message.MessageType.PlayerDefends:
+                            break;
+                        case Message.MessageType.PlayerLeftDungeon:
+                            break;
+                        case Message.MessageType.PlayerDies:
+                            break;
+                        case Message.MessageType.EndGame:
+                            break;
+                        case Message.MessageType.MoveRequest:
+                            break;
+                        case Message.MessageType.AttackRequest:
+                            break;
+                        case Message.MessageType.DefendRequest:
+                            break;
+                        case Message.MessageType.ClaimTreasureRequest:
+                            break;
+                        case Message.MessageType.LeaveDungeonRequest:
+                            break;
+                        case Message.MessageType.Count:
+                            break;
                         default:
                             break;
                     }
                 } else if(cmd == NetworkEvent.Type.Disconnect) {
                     Debug.Log("Client disconnected");
+                    serverManager.HandleDisconnect(connections[i].InternalId);
                     connections[i] = default;
                 }
             }
@@ -106,6 +151,7 @@ public class ServerBehaviour : MonoBehaviour {
 
         ProcessMessagesQueue();
 
+        //order slightly wrong but will be sent next cycle
         foreach(KeyValuePair<int,float> lastSendTime in lastSendTimes) {
             if(Time.time - lastSendTime.Value > STAY_ALIVE_AFTER_SECONDS) {
                 QeueMessage(new AdressedMessage( new NoneMessage(), lastSendTime.Key));

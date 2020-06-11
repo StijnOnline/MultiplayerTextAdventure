@@ -18,13 +18,20 @@ namespace Assets.Code.Client {
             NewPlayerMessage newPlayerMessage = (NewPlayerMessage)message;
             Player newPlayer = new Player(newPlayerMessage.PlayerColor);
             newPlayer.name = newPlayerMessage.PlayerName;
-            lobby.AddPlayer(newPlayerMessage.PlayerID, newPlayer);
+            lobby.players.Add(newPlayerMessage.PlayerID, newPlayer);
             Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
+        }
+
+        public void HandlePlayerLeft(Message message) {
+            PlayerLeftMessage playerLeftMessage = (PlayerLeftMessage)message;
+            lobby.players.Remove(playerLeftMessage.PlayerID);
         }
 
         public void HandleWelcome(Message message) {
             WelcomeMessage welcomeMessage = (WelcomeMessage) message;
+            Debug.Log(welcomeMessage.Color);
             Player newPlayer = new Player(welcomeMessage.Color);
+
             newPlayer.name = Login.Username;
             lobby.SetPlayer(welcomeMessage.PlayerID, newPlayer);
             Menu.Instance.LobbyWindow.UpdatePlayers(lobby);

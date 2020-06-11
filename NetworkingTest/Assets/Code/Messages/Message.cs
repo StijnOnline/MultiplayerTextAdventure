@@ -21,6 +21,22 @@ namespace Assets.Code
             RequestDenied,
             PlayerLeft,
             StartGame,
+            PlayerTurn,
+            RoomInfo,
+            PlayerEnterRoom,
+            PlayerLeaveRoom,
+            ObtainTreasure,
+            HitMonster,
+            HitByMonster,
+            PlayerDefends,
+            PlayerLeftDungeon,
+            PlayerDies,
+            EndGame,
+            MoveRequest,
+            AttackRequest,
+            DefendRequest,
+            ClaimTreasureRequest,
+            LeaveDungeonRequest,
             Count
         }
 

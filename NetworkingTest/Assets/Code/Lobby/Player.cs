@@ -7,11 +7,17 @@ using UnityEngine;
 
 namespace Assets.Code {
     public class Player {
+        public ushort health;
+        //only used by serverBehaviour
+        public Vector2Int position;
+
         public string name { get; set; } = null;
         public Color color {get; private set; }
 
         public Player(uint color) {
-            this.color.FromUInt(color);
+            Color32 color32;
+            color32 = ColorExtentions.FromUInt(color);
+            this.color = color32;
         }
 
         public Player(Color color) {

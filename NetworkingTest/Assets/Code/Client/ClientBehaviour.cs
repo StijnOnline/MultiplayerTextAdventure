@@ -62,6 +62,7 @@ public class ClientBehaviour : MonoBehaviour {
         }
         ClientCallbacks[(int)Message.MessageType.NewPlayer].AddListener(clientManager.HandleNewPlayer);
         ClientCallbacks[(int)Message.MessageType.Welcome].AddListener(clientManager.HandleWelcome);
+        ClientCallbacks[(int)Message.MessageType.PlayerLeft].AddListener(clientManager.HandlePlayerLeft);
     }
 
     void Update() {
@@ -80,28 +81,64 @@ public class ClientBehaviour : MonoBehaviour {
                 var messageType = (Message.MessageType)reader.ReadUShort();
                 Debug.Log("Client Received: " + messageType + " from Host");
                 switch(messageType) {
-                    case Message.MessageType.None:
-                        break;
+                    case Message.MessageType.None: break;
                     case Message.MessageType.NewPlayer: {
-                        var message = new NewPlayerMessage();
-                        message.DeserializeObject(ref reader);
-                        receivedMessagesQueue.Enqueue(message);
-                        break;
-                    }
+                            var message = new NewPlayerMessage();
+                            message.DeserializeObject(ref reader);
+                            receivedMessagesQueue.Enqueue(message);
+                            break;
+                        }
                     case Message.MessageType.Welcome: {
-                        var message = new WelcomeMessage();
-                        message.DeserializeObject(ref reader);
-                        receivedMessagesQueue.Enqueue(message);
+                            var message = new WelcomeMessage();
+                            message.DeserializeObject(ref reader);
+                            receivedMessagesQueue.Enqueue(message);
+                            break;
+                        }
+                    case Message.MessageType.RequestDenied: break;
+                    case Message.MessageType.PlayerLeft: {
+                            var message = new PlayerLeftMessage();
+                            message.DeserializeObject(ref reader);
+                            receivedMessagesQueue.Enqueue(message);
+                            break;
+                        }
+                    case Message.MessageType.StartGame: break;
+                    case Message.MessageType.SetName:
                         break;
-                    }
-                    case Message.MessageType.RequestDenied:
+                    case Message.MessageType.PlayerTurn:
                         break;
-                    case Message.MessageType.PlayerLeft:
+                    case Message.MessageType.RoomInfo:
                         break;
-                    case Message.MessageType.StartGame:
+                    case Message.MessageType.PlayerEnterRoom:
                         break;
-                    default:
+                    case Message.MessageType.PlayerLeaveRoom:
                         break;
+                    case Message.MessageType.ObtainTreasure:
+                        break;
+                    case Message.MessageType.HitMonster:
+                        break;
+                    case Message.MessageType.HitByMonster:
+                        break;
+                    case Message.MessageType.PlayerDefends:
+                        break;
+                    case Message.MessageType.PlayerLeftDungeon:
+                        break;
+                    case Message.MessageType.PlayerDies:
+                        break;
+                    case Message.MessageType.EndGame:
+                        break;
+                    case Message.MessageType.MoveRequest:
+                        break;
+                    case Message.MessageType.AttackRequest:
+                        break;
+                    case Message.MessageType.DefendRequest:
+                        break;
+                    case Message.MessageType.ClaimTreasureRequest:
+                        break;
+                    case Message.MessageType.LeaveDungeonRequest:
+                        break;
+                    case Message.MessageType.Count:
+                        break;
+                    default: break;
                 }
             } else if(cmd == NetworkEvent.Type.Disconnect) {
                 Debug.Log("Disconnected from server");
