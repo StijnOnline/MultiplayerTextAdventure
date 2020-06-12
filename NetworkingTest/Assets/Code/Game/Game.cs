@@ -1,5 +1,7 @@
 ﻿using Assets.Code.Game;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
@@ -21,8 +23,10 @@ namespace Assets.Code.Server {
         const int monsterTreasure = 100;
         public const int defaultHealth = 10;
 
-        private int currentTurn;
-        
+        public int currentTurn { get; private set; }
+        //public Dictionary<int, Player>.Enumerator currentTurn;
+        //public Dictionary<int, Player>.KeyCollection.Enumerator currentTurn;
+
         public void Start() {
             started = true;
             GenerateMap();
@@ -34,6 +38,8 @@ namespace Assets.Code.Server {
             }
 
             //define first turn
+            currentTurn = serverManager.lobby.players.First().Key;
+            serverManager.SendTurn(currentTurn);
         }
 
         private void GenerateMap() {
@@ -41,7 +47,7 @@ namespace Assets.Code.Server {
             for(int x = 0; x < mapSize; x++) {
                 for(int y = 0; y < mapSize; y++) {
                     //No Room
-                    if(x < mapSize - 1 && y < mapSize - 1) {//but not near exit
+                    if(x < mapSize - 1 && y < mapSize - 1 && !(x == 0 && y == 0)) {//but not near exit or startLocation
                         if(UnityEngine.Random.value < noRoomChance)
                             continue;
                     }
@@ -67,6 +73,33 @@ namespace Assets.Code.Server {
             }
         }
 
+        //is cool, maar is dit eigenlijk wel zo handig/efficient
+        private void StepTurn() {
+            /*if(!currentTurn.MoveNext()) {
+                currentTurn = serverManager.lobby.players.Keys.GetEnumerator();
+            }*/
+
+        }
+
+        public bool MovePlayer(int playerID, Directions moveDir) {
+            //player should not move in muliple directions
+            //if it is requested it will only execute one (based on if order)
+            Directions possible = GetPossibleDirections(serverManager.lobby.players[playerID].position);
+
+            if((moveDir & possible & Directions.North) != 0)
+                serverManager.lobby.players[playerID].position += new Vector2Int(0, -1);
+            else if((moveDir & possible & Directions.East) != 0)
+                serverManager.lobby.players[playerID].position += new Vector2Int(1, 0);
+            else if((moveDir & possible & Directions.South) != 0)
+                serverManager.lobby.players[playerID].position += new Vector2Int(0, 1);
+            else if((moveDir & possible & Directions.West) != 0)
+                serverManager.lobby.players[playerID].position += new Vector2Int(-1, 0);
+            else //no possible move entered
+                return false;
+
+            return true;
+        }
+
         public RoomInfoMessage GetRoomInfo(int playerId) {
             Player player = serverManager.lobby.players[playerId];
             Room room = GetRoom(player);
@@ -75,10 +108,11 @@ namespace Assets.Code.Server {
                 TreasureInRoom = (ushort)room.treasure,
                 ContainsMonster = room.monster != null,
                 ContainsExit = room.exit,
-                NumberofOtherPlayers = (byte)room.playerIdsInRoom.Count,
-                OtherPlayerIDs = room.playerIdsInRoom
-
+                OtherPlayerIDs = new List<int>(room.playerIdsInRoom)
             };
+            //dont send the player itself
+            roomInfoMessage.OtherPlayerIDs.Remove(playerId);
+            roomInfoMessage.NumberofOtherPlayers = (byte)roomInfoMessage.OtherPlayerIDs.Count;
             return roomInfoMessage;
         }
 
@@ -93,7 +127,7 @@ namespace Assets.Code.Server {
         private Directions GetPossibleDirections(Vector2Int position) {
             Directions d = 0;
             if(position.y > 0 && map[position.x, position.y - 1] != null)
-                d |=  Directions.North;
+                d |= Directions.North;
             if(position.x < mapSize && map[position.x + 1, position.y] != null)
                 d |= Directions.East;
             if(position.y < mapSize && map[position.x, position.y + 1] != null)

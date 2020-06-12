@@ -12,14 +12,14 @@ namespace Assets.Code.Client {
             if(SingleTon != null && SingleTon != this) {
                 Destroy(SingleTon);
             } else {
-                SingleTon = this;                
+                SingleTon = this;
             }
 
             DontDestroyOnLoad(gameObject);
         }
 
 
-        private Lobby lobby = new Lobby();
+        public Lobby lobby { get; private set; } = new Lobby();
         public ClientBehaviour clientBehaviour { get; private set; }
 
         public ClientManager() {
@@ -67,6 +67,32 @@ namespace Assets.Code.Client {
             //set HP in UI
             Debug.Log("Game Started");
             Menu.Singleton.SetMenu(Menu.Menus.clientGame);
+        }
+
+        public void HandlePlayerTurn(Message message) {
+            PlayerTurnMessage playerTurnMessage = (PlayerTurnMessage)message;
+            Menu.Singleton.gameWindow.OutputText("Turn: " + lobby.players[playerTurnMessage.PlayerID].name);
+        }
+
+        public void HandleRoomInfo(Message message) {
+            RoomInfoMessage roomInfoMessage = (RoomInfoMessage)message;
+            Menu.Singleton.gameWindow.OutputRoomInfoText(roomInfoMessage);
+
+            //could disable UI
+        }
+
+        public void HandlePlayerEnterRoom(Message message) {
+            PlayerEnterRoomMessage playerEnterRoomMessage = (PlayerEnterRoomMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[playerEnterRoomMessage.PlayerID].name);
+        }
+
+        public void HandlePlayerLeaveRoom(Message message) {
+            PlayerLeaveRoomMessage playerLeaveRoomMessage = (PlayerLeaveRoomMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[playerLeaveRoomMessage.PlayerID].name);
+        }
+
+        public void Move(int dir) {
+            clientBehaviour.QeueMessage(new MoveRequestMessage() { direction = (Server.Game.Directions)dir });
         }
     }
 }

@@ -13,6 +13,7 @@ public class Menu : MonoBehaviour {
     [SerializeField] private GameObject clientLobby;
     [SerializeField] private LobbyWindow[] LobbyWindows;
     [SerializeField] private GameObject clientGame;
+    public GameWindow gameWindow;
     private Menus lastToggleMenu;
 
     public enum Menus {
@@ -34,6 +35,7 @@ public class Menu : MonoBehaviour {
             Singleton = this;
         }
 
+        toggleViewButton.SetActive(false);
         SetMenu(Menus.chooseMenu);
     }
 
@@ -84,6 +86,7 @@ public class Menu : MonoBehaviour {
         clientLobby.SetActive(menu == Menus.clientLobby);
         clientGame.SetActive(menu == Menus.clientGame);        
 
-        toggleViewButton.SetActive(menu == Menus.hostOutput || menu == Menus.clientLobby || menu == Menus.clientGame);        
+        if(ServerManager.Singleton != null)
+            toggleViewButton.SetActive(menu == Menus.hostOutput || menu == Menus.clientLobby || menu == Menus.clientGame);        
     }
 }

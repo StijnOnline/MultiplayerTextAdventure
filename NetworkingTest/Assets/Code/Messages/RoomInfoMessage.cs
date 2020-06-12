@@ -46,5 +46,7 @@ namespace Assets.Code
                 OtherPlayerIDs.Add(reader.ReadInt());
             }
         }
+
+        
     }
 }

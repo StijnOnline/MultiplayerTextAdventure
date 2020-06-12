@@ -42,7 +42,7 @@ namespace Assets.Code.Server {
         }
 
         public void StartGame() {
-            if(game.started) return;
+            if(game.started || lobby.players.Count == 0) return;
             game.Start();
             SendStart();
         }
@@ -52,6 +52,12 @@ namespace Assets.Code.Server {
                 serverBehaviour.QeueMessage(new AdressedMessage(new StartGameMessage() { startHealth = p.Value.health }, p.Key));
                 serverBehaviour.QeueMessage(new AdressedMessage(game.GetRoomInfo(p.Key), p.Key));
             }
+        }
+
+        public void SendTurn(int playerID) {
+            foreach(var p in lobby.players) {
+                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerTurnMessage() { PlayerID = playerID }, p.Key));
+            }            
         }
 
         public void HandleNewConnection(int connectionID) {
@@ -99,7 +105,10 @@ namespace Assets.Code.Server {
         }
 
         public void HandleSetName(AdressedMessage adressedMessage) {
-            if(game.started) return;
+            if(game.started) {
+                serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage(), adressedMessage.connectionID));
+                return; 
+            }
 
             SetNameMessage setNameMessage = (SetNameMessage)adressedMessage.message;
             lobby.players[adressedMessage.connectionID].name = setNameMessage.Name;
@@ -117,5 +126,28 @@ namespace Assets.Code.Server {
             }
 
         }
+
+        public void HandleMoveRequest(AdressedMessage adressedMessage) {
+            if(adressedMessage.connectionID == game.currentTurn) {
+                serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage() { MessageID = adressedMessage.message.ID}, adressedMessage.connectionID));
+                return;
+            }
+            //player left messages 
+            RoomInfoMessage leftRoom = game.GetRoomInfo(adressedMessage.connectionID);
+            foreach(int playerID in leftRoom.OtherPlayerIDs) {
+                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerLeaveRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
+            }
+            game.MovePlayer(adressedMessage.connectionID, ((MoveRequestMessage)adressedMessage.message).direction);
+            //player entered messages 
+            RoomInfoMessage enteredRoom = game.GetRoomInfo(adressedMessage.connectionID);
+            foreach(int playerID in enteredRoom.OtherPlayerIDs) {
+                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerEnterRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
+            }
+            //roominfo message
+            serverBehaviour.QeueMessage(new AdressedMessage(enteredRoom, adressedMessage.connectionID));
+
+        }
+
+
     }
 }
