@@ -23,9 +23,9 @@ namespace Assets.Code.Server {
         const int monsterTreasure = 100;
         public const int defaultHealth = 10;
 
-        public int currentTurn { get; private set; }
-        //public Dictionary<int, Player>.Enumerator currentTurn;
-        //public Dictionary<int, Player>.KeyCollection.Enumerator currentTurn;
+        //public int currentTurn { get; private set; }
+        //public Dictionary<int, Player>.Enumerator turnEnumerator;
+        public Dictionary<int, Player>.KeyCollection.Enumerator turnEnumerator;
 
         public void Start() {
             started = true;
@@ -38,8 +38,10 @@ namespace Assets.Code.Server {
             }
 
             //define first turn
-            currentTurn = serverManager.lobby.players.First().Key;
-            serverManager.SendTurn(currentTurn);
+            //currentTurn = serverManager.lobby.players.First().Key;
+            turnEnumerator = serverManager.lobby.players.Keys.GetEnumerator();
+
+            StepTurn();
         }
 
         private void GenerateMap() {
@@ -73,12 +75,16 @@ namespace Assets.Code.Server {
             }
         }
 
-        //is cool, maar is dit eigenlijk wel zo handig/efficient
+        //is cool, maar is dit eigenlijk wel zo handig/efficient?
+        //heeft me wel meer geleerd over enumerators / enumeratables enzo
         private void StepTurn() {
-            /*if(!currentTurn.MoveNext()) {
-                currentTurn = serverManager.lobby.players.Keys.GetEnumerator();
-            }*/
-
+            //turnEnumerator == Enumerable.Empty<Dictionary<int, Player>.KeyCollection > ()
+            if(!turnEnumerator.MoveNext()) {
+                turnEnumerator = serverManager.lobby.players.Keys.GetEnumerator();
+                turnEnumerator.MoveNext();
+            }
+            Debug.Log(turnEnumerator.Current);
+            serverManager.SendTurn(turnEnumerator.Current);
         }
 
         public bool MovePlayer(int playerID, Directions moveDir) {
@@ -97,6 +103,7 @@ namespace Assets.Code.Server {
             else //no possible move entered
                 return false;
 
+            StepTurn();
             return true;
         }
 
@@ -128,9 +135,9 @@ namespace Assets.Code.Server {
             Directions d = 0;
             if(position.y > 0 && map[position.x, position.y - 1] != null)
                 d |= Directions.North;
-            if(position.x < mapSize && map[position.x + 1, position.y] != null)
+            if(position.x < mapSize -1 && map[position.x + 1, position.y] != null)
                 d |= Directions.East;
-            if(position.y < mapSize && map[position.x, position.y + 1] != null)
+            if(position.y < mapSize -1 && map[position.x, position.y + 1] != null)
                 d |= Directions.South;
             if(position.x > 0 && map[position.x - 1, position.y] != null)
                 d |= Directions.West;

@@ -63,6 +63,7 @@ public class ClientBehaviour {
         }
         ClientCallbacks[(int)Message.MessageType.NewPlayer].AddListener(clientManager.HandleNewPlayer);
         ClientCallbacks[(int)Message.MessageType.Welcome].AddListener(clientManager.HandleWelcome);
+        ClientCallbacks[(int)Message.MessageType.RequestDenied].AddListener(clientManager.HandleRequestDenied);
         ClientCallbacks[(int)Message.MessageType.PlayerLeft].AddListener(clientManager.HandlePlayerLeft);
         ClientCallbacks[(int)Message.MessageType.StartGame].AddListener(clientManager.HandleStartGame);
         ClientCallbacks[(int)Message.MessageType.PlayerTurn].AddListener(clientManager.HandlePlayerTurn);
@@ -92,7 +93,7 @@ public class ClientBehaviour {
                     case Message.MessageType.None: break;
                     case Message.MessageType.NewPlayer: message = new NewPlayerMessage(); break;
                     case Message.MessageType.Welcome: message = new WelcomeMessage(); break;
-                    case Message.MessageType.RequestDenied: break;
+                    case Message.MessageType.RequestDenied: message = new RequestDeniedMessage(); break;
                     case Message.MessageType.PlayerLeft: message = new PlayerLeftMessage(); break;
                     case Message.MessageType.StartGame: message = new StartGameMessage(); break;
                     case Message.MessageType.PlayerTurn: message = new PlayerTurnMessage(); break;

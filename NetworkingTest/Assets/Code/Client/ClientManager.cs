@@ -62,6 +62,11 @@ namespace Assets.Code.Client {
             clientBehaviour.QeueMessage(setNameMessage);
         }
 
+        public void HandleRequestDenied(Message message) {
+            RequestDeniedMessage requestDeniedMessage = (RequestDeniedMessage)message;
+            Menu.Singleton.gameWindow.OutputText("Request Denied: Whatever you did is not allowed");
+        }
+
         public void HandleStartGame(Message message) {
             StartGameMessage startGameMessage = (StartGameMessage)message;
             //set HP in UI

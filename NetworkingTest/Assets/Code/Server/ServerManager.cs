@@ -128,24 +128,30 @@ namespace Assets.Code.Server {
         }
 
         public void HandleMoveRequest(AdressedMessage adressedMessage) {
-            if(adressedMessage.connectionID == game.currentTurn) {
+            if(adressedMessage.connectionID == game.turnEnumerator.Current) {
                 serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage() { MessageID = adressedMessage.message.ID}, adressedMessage.connectionID));
                 return;
             }
             //player left messages 
             RoomInfoMessage leftRoom = game.GetRoomInfo(adressedMessage.connectionID);
-            foreach(int playerID in leftRoom.OtherPlayerIDs) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerLeaveRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
-            }
-            game.MovePlayer(adressedMessage.connectionID, ((MoveRequestMessage)adressedMessage.message).direction);
-            //player entered messages 
-            RoomInfoMessage enteredRoom = game.GetRoomInfo(adressedMessage.connectionID);
-            foreach(int playerID in enteredRoom.OtherPlayerIDs) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerEnterRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
-            }
-            //roominfo message
-            serverBehaviour.QeueMessage(new AdressedMessage(enteredRoom, adressedMessage.connectionID));
 
+
+            if(game.MovePlayer(adressedMessage.connectionID, ((MoveRequestMessage)adressedMessage.message).direction)) {
+
+                foreach(int playerID in leftRoom.OtherPlayerIDs) {
+                    serverBehaviour.QeueMessage(new AdressedMessage(new PlayerLeaveRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
+                }
+
+                //player entered messages 
+                RoomInfoMessage enteredRoom = game.GetRoomInfo(adressedMessage.connectionID);
+                foreach(int playerID in enteredRoom.OtherPlayerIDs) {
+                    serverBehaviour.QeueMessage(new AdressedMessage(new PlayerEnterRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
+                }
+                //roominfo message
+                serverBehaviour.QeueMessage(new AdressedMessage(enteredRoom, adressedMessage.connectionID));
+            } else {
+                serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage(), adressedMessage.connectionID));
+            }
         }
 
 
