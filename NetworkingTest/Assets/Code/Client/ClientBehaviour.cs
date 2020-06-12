@@ -10,7 +10,7 @@ using Assets.Code.Client;
 using UnityEditor.PackageManager;
 using UnityEngine.Events;
 
-public class ClientBehaviour : MonoBehaviour {
+public class ClientBehaviour {
     private NetworkDriver networkDriver;
     private NetworkConnection connection;
     private JobHandle networkJobHandle;
@@ -27,6 +27,10 @@ public class ClientBehaviour : MonoBehaviour {
     private float lastSendTime = 0;
     private const float STAY_ALIVE_AFTER_SECONDS = 20;
 
+    public ClientBehaviour(ClientManager clientManager) {
+        this.clientManager = clientManager;
+    }
+
     public void Connect(string address) {
         Init();
 
@@ -37,7 +41,6 @@ public class ClientBehaviour : MonoBehaviour {
         connection = networkDriver.Connect(endpoint);
     }
 
-    [ContextMenu("Connect to LocalHost")]
     public void ConnectLocalHost() {
         Init();
 
@@ -49,7 +52,6 @@ public class ClientBehaviour : MonoBehaviour {
     }
 
     private void Init() {
-        clientManager = new ClientManager(this);
         networkDriver = NetworkDriver.Create();
         connection = default;
 
@@ -65,7 +67,7 @@ public class ClientBehaviour : MonoBehaviour {
         ClientCallbacks[(int)Message.MessageType.PlayerLeft].AddListener(clientManager.HandlePlayerLeft);
     }
 
-    void Update() {
+    public void Update() {
         networkJobHandle.Complete();
 
         if(!connection.IsCreated) {
@@ -153,7 +155,7 @@ public class ClientBehaviour : MonoBehaviour {
         networkJobHandle = networkDriver.ScheduleUpdate();
     }
 
-    private void OnDestroy() {
+    public void Dispose() {
         networkJobHandle.Complete();
         networkDriver.Dispose();
     }

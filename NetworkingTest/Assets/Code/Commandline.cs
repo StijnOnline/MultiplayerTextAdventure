@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using System.Linq;
@@ -25,11 +25,11 @@ public class Commandline : MonoBehaviour {
         }
     }
 
-   /* private void Update() {
+   *//* private void Update() {
         if(Input.GetKeyDown(KeyCode.Return)) {
             EnterCommand(input);
         }
-    }*/
+    }*//*
 
     public void StartHost() {
         serverBehaviour = (new GameObject()).AddComponent<ServerBehaviour>();
@@ -77,4 +77,4 @@ public class Commandline : MonoBehaviour {
         if(debug)
             Debug.Log(text);
     }
-}
+}*/

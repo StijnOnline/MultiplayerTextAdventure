@@ -6,15 +6,39 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Code.Server {
-    public class ServerManager {
+    public class ServerManager : MonoBehaviour{
+        public static ServerManager Singleton;
+        public void Awake() {
+            if(Singleton != null && Singleton != this) {
+                Destroy(Singleton);
+            } else {
+                Singleton = this;
+            }
+
+            DontDestroyOnLoad(gameObject);
+        }
+
         public Lobby lobby = new Lobby();
         public Game game;
-        public ServerBehaviour serverBehaviour;
+        public ServerBehaviour serverBehaviour { get; private set; }
         internal const int maxPlayers = 4;
 
-        public ServerManager(ServerBehaviour serverBehaviour) {
-            this.serverBehaviour = serverBehaviour;
+        private void Start() {
+            serverBehaviour.Start();
+        }
+
+        private void Update() {
+            serverBehaviour.Update();
+        }
+
+        private void OnDestroy() {
+            serverBehaviour.Dispose();
+        }
+
+        public ServerManager() {
+            serverBehaviour = new ServerBehaviour(this);
             game = new Game(this);
+
         }
 
         public void StartGame() {

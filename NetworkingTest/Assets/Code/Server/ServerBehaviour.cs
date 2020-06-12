@@ -12,7 +12,7 @@ using System;
 using Assets.Code.Server;
 using System.Linq;
 
-public class ServerBehaviour : MonoBehaviour {
+public class ServerBehaviour {
     private NetworkDriver networkDriver;
     private NativeList<NetworkConnection> connections;
     private JobHandle networkJobHandle;
@@ -33,9 +33,11 @@ public class ServerBehaviour : MonoBehaviour {
     private Dictionary<int, float> lastSendTimes = new Dictionary<int, float>(ServerManager.maxPlayers);
     private const float STAY_ALIVE_AFTER_SECONDS = 20;
 
-    void Start() {
-        serverManager = new ServerManager(this);
+    public ServerBehaviour(ServerManager serverManager) {
+        this.serverManager = serverManager;
+    }
 
+    public void Start() {
 
         networkDriver = NetworkDriver.Create();
         var endpoint = NetworkEndPoint.AnyIpv4;
@@ -60,7 +62,7 @@ public class ServerBehaviour : MonoBehaviour {
         Debug.Log("Host Started");
     }
 
-    void Update() {
+    public void Update() {
         networkJobHandle.Complete();
 
         for(int i = 0; i < connections.Length; ++i) {
@@ -172,7 +174,7 @@ public class ServerBehaviour : MonoBehaviour {
         }
     }
 
-    private void OnDestroy() {
+    public void Dispose() {
         networkJobHandle.Complete();
         networkDriver.Dispose();
         connections.Dispose();

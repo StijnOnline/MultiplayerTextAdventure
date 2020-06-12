@@ -6,11 +6,32 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Code.Client {
-    public class ClientManager {
+    public class ClientManager : MonoBehaviour {
+        public static ClientManager SingleTon;
+        public void Awake() {
+            if(SingleTon != null && SingleTon != this) {
+                Destroy(SingleTon);
+            } else {
+                SingleTon = this;                
+            }
+
+            DontDestroyOnLoad(gameObject);
+        }
+
+
         private Lobby lobby = new Lobby();
-        private ClientBehaviour clientBehaviour;
-        public ClientManager(ClientBehaviour clientBehaviour) {
-            this.clientBehaviour = clientBehaviour;
+        public ClientBehaviour clientBehaviour { get; private set; }
+
+        public ClientManager() {
+            clientBehaviour = new ClientBehaviour(this);
+        }
+
+        private void Update() {
+            clientBehaviour.Update();
+        }
+
+        private void OnDestroy() {
+            clientBehaviour.Dispose();
         }
 
 
@@ -19,7 +40,7 @@ namespace Assets.Code.Client {
             Player newPlayer = new Player(newPlayerMessage.PlayerColor);
             newPlayer.name = newPlayerMessage.PlayerName;
             lobby.players.Add(newPlayerMessage.PlayerID, newPlayer);
-            Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
+            Menu.Instance.UpdateLobbyWindows(lobby);
         }
 
         public void HandlePlayerLeft(Message message) {
@@ -28,13 +49,13 @@ namespace Assets.Code.Client {
         }
 
         public void HandleWelcome(Message message) {
-            WelcomeMessage welcomeMessage = (WelcomeMessage) message;
+            WelcomeMessage welcomeMessage = (WelcomeMessage)message;
             Debug.Log(welcomeMessage.Color);
             Player newPlayer = new Player(welcomeMessage.Color);
 
             newPlayer.name = Login.Username;
             lobby.SetPlayer(welcomeMessage.PlayerID, newPlayer);
-            Menu.Instance.LobbyWindow.UpdatePlayers(lobby);
+            Menu.Instance.UpdateLobbyWindows(lobby);
             //immediately set player name
             var setNameMessage = new SetNameMessage {
                 Name = Login.Username
