@@ -7,11 +7,11 @@ using UnityEngine;
 public class Connect : MonoBehaviour {
     public void ConnectToHost(TMP_InputField inputField) {
         (new GameObject()).AddComponent<ClientManager>().clientBehaviour.Connect(inputField.text);
-        Menu.Instance.SetMenu(Menu.Menus.clientLobby);
+        Menu.Singleton.SetMenu(Menu.Menus.clientLobby);
     }
 
     public void LocalHost() {
         (new GameObject()).AddComponent<ClientManager>().clientBehaviour.ConnectLocalHost();
-        Menu.Instance.SetMenu(Menu.Menus.clientLobby);
+        Menu.Singleton.SetMenu(Menu.Menus.clientLobby);
     }
 }

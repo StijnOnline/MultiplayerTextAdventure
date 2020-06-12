@@ -6,6 +6,8 @@ using TMPro;
 namespace Assets.Code {
     public class GameWindow : MonoBehaviour {
         [SerializeField] private TextMeshProUGUI outputText;
+        public TextMeshProUGUI hpText;
+        public TextMeshProUGUI goldText;
 
         public void Move(int dir) {
 
@@ -25,6 +27,10 @@ namespace Assets.Code {
 
         public void Defend() {
 
+        }
+
+        public void OutputText(string text) {
+            outputText.text += text + "\n";
         }
     }
 }

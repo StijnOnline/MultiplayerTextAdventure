@@ -9,5 +9,6 @@ namespace Assets.Code.Game {
         public bool exit = false;
         public Monster monster = null;
         public int treasure = 0;
+        public List<int> playerIdsInRoom = new List<int>();
     }
 }

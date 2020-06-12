@@ -44,8 +44,13 @@ namespace Assets.Code.Server {
         public void StartGame() {
             if(game.started) return;
             game.Start();
+            SendStart();
+        }
+
+        public void SendStart() {
             foreach(var p in lobby.players) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new StartGameMessage(p.Value.health), p.Key));
+                serverBehaviour.QeueMessage(new AdressedMessage(new StartGameMessage() { startHealth = p.Value.health }, p.Key));
+                serverBehaviour.QeueMessage(new AdressedMessage(game.GetRoomInfo(p.Key), p.Key));
             }
         }
 

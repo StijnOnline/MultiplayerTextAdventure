@@ -53,7 +53,7 @@ public class Login : MonoBehaviour {
                     if(content != "Incorrect Login Info") {
                         SessionID = content;
                         Username = email.text; //todo get actual username
-                        Menu.Instance.SetMenu(Menu.Menus.clientConnect);
+                        Menu.Singleton.SetMenu(Menu.Menus.clientConnect);
                     } else {
                         failed.text = "Incorrect Login Info";
                         StartCoroutine(resetFailedText());

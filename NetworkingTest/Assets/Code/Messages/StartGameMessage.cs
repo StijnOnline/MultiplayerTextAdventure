@@ -9,9 +9,6 @@ namespace Assets.Code
 {
     public class StartGameMessage : Message
     {
-        public StartGameMessage(ushort startHealth) {
-            this.startHealth = startHealth;
-        }
         public override MessageType Type => MessageType.StartGame;
 
         public ushort startHealth { get; set; }

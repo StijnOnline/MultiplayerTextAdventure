@@ -24,14 +24,14 @@ public class Menu : MonoBehaviour {
         clientGame
     }
     private Menus currentMenu;
-    public static Menu Instance;
+    public static Menu Singleton;
 
 
     private void Awake() {
-        if(Instance != null && Instance != this) {
+        if(Singleton != null && Singleton != this) {
             Destroy(gameObject);
         } else {
-            Instance = this;
+            Singleton = this;
         }
 
         SetMenu(Menus.chooseMenu);
@@ -72,12 +72,17 @@ public class Menu : MonoBehaviour {
 
     public void SetMenu(Menus menu) {
         currentMenu = menu;
+
+        /*if(menu == Menus.clientGame && menu == Menus.hostOutput) {
+            ToggleView();
+        }*/
+
         chooseMenu.SetActive(menu == Menus.chooseMenu);
         hostOutput.SetActive(menu == Menus.hostOutput);
         clientLogin.SetActive(menu == Menus.clientLogin);
         clientConnect.SetActive(menu == Menus.clientConnect);
         clientLobby.SetActive(menu == Menus.clientLobby);
-        clientGame.SetActive(menu == Menus.clientGame);
+        clientGame.SetActive(menu == Menus.clientGame);        
 
         toggleViewButton.SetActive(menu == Menus.hostOutput || menu == Menus.clientLobby || menu == Menus.clientGame);        
     }

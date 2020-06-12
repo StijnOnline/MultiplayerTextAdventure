@@ -65,6 +65,7 @@ public class ClientBehaviour {
         ClientCallbacks[(int)Message.MessageType.NewPlayer].AddListener(clientManager.HandleNewPlayer);
         ClientCallbacks[(int)Message.MessageType.Welcome].AddListener(clientManager.HandleWelcome);
         ClientCallbacks[(int)Message.MessageType.PlayerLeft].AddListener(clientManager.HandlePlayerLeft);
+        ClientCallbacks[(int)Message.MessageType.StartGame].AddListener(clientManager.HandleStartGame);
     }
 
     public void Update() {
@@ -103,13 +104,22 @@ public class ClientBehaviour {
                             receivedMessagesQueue.Enqueue(message);
                             break;
                         }
-                    case Message.MessageType.StartGame: break;
+                    case Message.MessageType.StartGame: {
+                            var message = new StartGameMessage();
+                            message.DeserializeObject(ref reader);
+                            receivedMessagesQueue.Enqueue(message);
+                            break;
+                        }
                     case Message.MessageType.SetName:
                         break;
                     case Message.MessageType.PlayerTurn:
                         break;
-                    case Message.MessageType.RoomInfo:
-                        break;
+                    case Message.MessageType.RoomInfo: {
+                            var message = new RoomInfoMessage();
+                            message.DeserializeObject(ref reader);
+                            receivedMessagesQueue.Enqueue(message);
+                            break;
+                        }
                     case Message.MessageType.PlayerEnterRoom:
                         break;
                     case Message.MessageType.PlayerLeaveRoom:

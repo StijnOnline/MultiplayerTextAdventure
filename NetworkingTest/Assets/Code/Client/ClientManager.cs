@@ -40,7 +40,7 @@ namespace Assets.Code.Client {
             Player newPlayer = new Player(newPlayerMessage.PlayerColor);
             newPlayer.name = newPlayerMessage.PlayerName;
             lobby.players.Add(newPlayerMessage.PlayerID, newPlayer);
-            Menu.Instance.UpdateLobbyWindows(lobby);
+            Menu.Singleton.UpdateLobbyWindows(lobby);
         }
 
         public void HandlePlayerLeft(Message message) {
@@ -50,17 +50,23 @@ namespace Assets.Code.Client {
 
         public void HandleWelcome(Message message) {
             WelcomeMessage welcomeMessage = (WelcomeMessage)message;
-            Debug.Log(welcomeMessage.Color);
             Player newPlayer = new Player(welcomeMessage.Color);
 
             newPlayer.name = Login.Username;
             lobby.SetPlayer(welcomeMessage.PlayerID, newPlayer);
-            Menu.Instance.UpdateLobbyWindows(lobby);
+            Menu.Singleton.UpdateLobbyWindows(lobby);
             //immediately set player name
             var setNameMessage = new SetNameMessage {
                 Name = Login.Username
             };
             clientBehaviour.QeueMessage(setNameMessage);
+        }
+
+        public void HandleStartGame(Message message) {
+            StartGameMessage startGameMessage = (StartGameMessage)message;
+            //set HP in UI
+            Debug.Log("Game Started");
+            Menu.Singleton.SetMenu(Menu.Menus.clientGame);
         }
     }
 }

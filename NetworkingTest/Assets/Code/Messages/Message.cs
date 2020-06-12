@@ -5,15 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Networking.Transport;
 
-namespace Assets.Code
-{
-    public abstract class Message
-    {
+namespace Assets.Code {
+    public abstract class Message {
         private static uint nextID = 0;
         public static uint NextID => ++nextID;
 
-        public enum MessageType
-        {
+        public enum MessageType {
             None = 0,
             NewPlayer,
             Welcome,
@@ -43,15 +40,14 @@ namespace Assets.Code
         public abstract MessageType Type { get; }
         public uint ID { get; private set; } = NextID;
 
-        public virtual void SerializeObject(ref DataStreamWriter writer)
-        {
+        public virtual void SerializeObject(ref DataStreamWriter writer) {
             writer.WriteUShort((ushort)Type);
             writer.WriteUInt(ID);
         }
 
-        public virtual void DeserializeObject(ref DataStreamReader reader)
-        {
+        public virtual void DeserializeObject(ref DataStreamReader reader) {
             ID = reader.ReadUInt();
         }
     }
 }
+
