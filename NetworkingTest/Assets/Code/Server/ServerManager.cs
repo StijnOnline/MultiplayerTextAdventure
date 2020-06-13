@@ -52,6 +52,7 @@ namespace Assets.Code.Server {
                 serverBehaviour.QeueMessage(new AdressedMessage(new StartGameMessage() { startHealth = p.Value.health }, p.Key));
                 serverBehaviour.QeueMessage(new AdressedMessage(game.GetRoomInfo(p.Key), p.Key));
             }
+            SendTurn(game.GetCurrentTurnPlayerID());
         }
 
         public void SendTurn(int playerID) {
@@ -128,7 +129,7 @@ namespace Assets.Code.Server {
         }
 
         public void HandleMoveRequest(AdressedMessage adressedMessage) {
-            if(adressedMessage.connectionID == game.turnEnumerator.Current) {
+            if(adressedMessage.connectionID != game.GetCurrentTurnPlayerID()) {
                 serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage() { MessageID = adressedMessage.message.ID}, adressedMessage.connectionID));
                 return;
             }
@@ -152,6 +153,8 @@ namespace Assets.Code.Server {
             } else {
                 serverBehaviour.QeueMessage(new AdressedMessage(new RequestDeniedMessage(), adressedMessage.connectionID));
             }
+
+            SendTurn(game.GetCurrentTurnPlayerID());
         }
 
 

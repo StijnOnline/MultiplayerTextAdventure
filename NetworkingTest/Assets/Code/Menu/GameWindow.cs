@@ -34,6 +34,8 @@ namespace Assets.Code {
             outputText.text += text + "\n";
         }
 
+        
+
         public void OutputRoomInfoText(RoomInfoMessage roomInfoMessage) {
             string roomInfoText = "The room";
 
@@ -63,7 +65,7 @@ namespace Assets.Code {
                 for(int i = 0; i < roomInfoMessage.NumberofOtherPlayers; i++) {
                     if(i != 0)
                         roomInfoText += " and ";
-                    roomInfoText += ClientManager.SingleTon.lobby.players[roomInfoMessage.OtherPlayerIDs[i]].name;
+                    roomInfoText += ClientManager.SingleTon.lobby.players[roomInfoMessage.OtherPlayerIDs[i]].PlayerTextWithColorTag();
                 }
             }
             OutputText(roomInfoText);

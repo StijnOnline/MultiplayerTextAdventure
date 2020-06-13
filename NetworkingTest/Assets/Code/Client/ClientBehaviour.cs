@@ -98,8 +98,8 @@ public class ClientBehaviour {
                     case Message.MessageType.StartGame: message = new StartGameMessage(); break;
                     case Message.MessageType.PlayerTurn: message = new PlayerTurnMessage(); break;
                     case Message.MessageType.RoomInfo: message = new RoomInfoMessage(); break;
-                    case Message.MessageType.PlayerEnterRoom: message = new PlayerLeftMessage(); break;
-                    case Message.MessageType.PlayerLeaveRoom: message = new PlayerLeftMessage(); break;
+                    case Message.MessageType.PlayerEnterRoom: message = new PlayerEnterRoomMessage(); break;
+                    case Message.MessageType.PlayerLeaveRoom: message = new PlayerLeaveRoomMessage(); break;
                     case Message.MessageType.ObtainTreasure: break;
                     case Message.MessageType.HitMonster: break;
                     case Message.MessageType.HitByMonster:   break;

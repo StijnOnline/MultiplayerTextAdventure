@@ -24,6 +24,10 @@ namespace Assets.Code {
             this.color = color;
         }
 
+        public string PlayerTextWithColorTag() {
+            return "<#" + ColorUtility.ToHtmlStringRGB(color) + ">" + name + "</color>";
+        }
+
     }
 
 }

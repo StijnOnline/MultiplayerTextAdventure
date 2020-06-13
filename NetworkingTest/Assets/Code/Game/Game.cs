@@ -14,7 +14,7 @@ namespace Assets.Code.Server {
         public bool started { get; private set; } = false;
         public Room[,] map;
 
-        const int mapSize = 4;
+        const int mapSize = 3;
         const float noRoomChance = 0.15f;
         const float treasureChance = 0.15f;
         const int treasureMin = 50;
@@ -23,9 +23,10 @@ namespace Assets.Code.Server {
         const int monsterTreasure = 100;
         public const int defaultHealth = 10;
 
-        //public int currentTurn { get; private set; }
-        //public Dictionary<int, Player>.Enumerator turnEnumerator;
-        public Dictionary<int, Player>.KeyCollection.Enumerator turnEnumerator;
+        //iterator of playerKeys integer list
+        private int currentTurnIndex;
+        private List<int> playerKeys;
+
 
         public void Start() {
             started = true;
@@ -37,10 +38,9 @@ namespace Assets.Code.Server {
                 map[player.position.x, player.position.y].playerIdsInRoom.Add(p.Key);
             }
 
+            playerKeys = serverManager.lobby.players.Keys.ToList();
             //define first turn
-            //currentTurn = serverManager.lobby.players.First().Key;
-            turnEnumerator = serverManager.lobby.players.Keys.GetEnumerator();
-
+            currentTurnIndex = -1;
             StepTurn();
         }
 
@@ -49,14 +49,14 @@ namespace Assets.Code.Server {
             for(int x = 0; x < mapSize; x++) {
                 for(int y = 0; y < mapSize; y++) {
                     //No Room
-                    if(x < mapSize - 1 && y < mapSize - 1 && !(x == 0 && y == 0)) {//but not near exit or startLocation
+                    if((x < mapSize - 1 || y < mapSize - 1) && (x > 1 || y > 1)) {//but not near exit or startLocation
                         if(UnityEngine.Random.value < noRoomChance)
                             continue;
                     }
                     map[x, y] = new Room();
 
                     //Exit (always in corner)
-                    if(x == mapSize && y == mapSize) {
+                    if(x == mapSize -1 && y == mapSize-1) {
                         map[x, y].exit = true;
                         continue;
                     }
@@ -75,33 +75,38 @@ namespace Assets.Code.Server {
             }
         }
 
-        //is cool, maar is dit eigenlijk wel zo handig/efficient?
-        //heeft me wel meer geleerd over enumerators / enumeratables enzo
+
         private void StepTurn() {
-            //turnEnumerator == Enumerable.Empty<Dictionary<int, Player>.KeyCollection > ()
-            if(!turnEnumerator.MoveNext()) {
-                turnEnumerator = serverManager.lobby.players.Keys.GetEnumerator();
-                turnEnumerator.MoveNext();
-            }
-            Debug.Log(turnEnumerator.Current);
-            serverManager.SendTurn(turnEnumerator.Current);
+            if(serverManager.lobby.players.Count > 1)
+                currentTurnIndex = ++currentTurnIndex % serverManager.lobby.players.Count;
+            else
+                currentTurnIndex = 0;
+        }
+
+
+        public int GetCurrentTurnPlayerID() {
+            return playerKeys[currentTurnIndex];
         }
 
         public bool MovePlayer(int playerID, Directions moveDir) {
             //player should not move in muliple directions
             //if it is requested it will only execute one (based on if order)
             Directions possible = GetPossibleDirections(serverManager.lobby.players[playerID].position);
-
+            Vector2Int move;
             if((moveDir & possible & Directions.North) != 0)
-                serverManager.lobby.players[playerID].position += new Vector2Int(0, -1);
+                move = new Vector2Int(0, -1);
             else if((moveDir & possible & Directions.East) != 0)
-                serverManager.lobby.players[playerID].position += new Vector2Int(1, 0);
+                move = new Vector2Int(1, 0);
             else if((moveDir & possible & Directions.South) != 0)
-                serverManager.lobby.players[playerID].position += new Vector2Int(0, 1);
+                move = new Vector2Int(0, 1);
             else if((moveDir & possible & Directions.West) != 0)
-                serverManager.lobby.players[playerID].position += new Vector2Int(-1, 0);
+                move = new Vector2Int(-1, 0);
             else //no possible move entered
                 return false;
+
+            GetRoom(playerID).playerIdsInRoom.Remove(playerID);
+            serverManager.lobby.players[playerID].position += move;
+            GetRoom(playerID).playerIdsInRoom.Add(playerID);
 
             StepTurn();
             return true;
@@ -121,6 +126,10 @@ namespace Assets.Code.Server {
             roomInfoMessage.OtherPlayerIDs.Remove(playerId);
             roomInfoMessage.NumberofOtherPlayers = (byte)roomInfoMessage.OtherPlayerIDs.Count;
             return roomInfoMessage;
+        }
+
+        private Room GetRoom(int playerID) {
+            return map[serverManager.lobby.players[playerID].position.x, serverManager.lobby.players[playerID].position.y];
         }
 
         private Room GetRoom(Player player) {

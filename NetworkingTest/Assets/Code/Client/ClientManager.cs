@@ -76,7 +76,8 @@ namespace Assets.Code.Client {
 
         public void HandlePlayerTurn(Message message) {
             PlayerTurnMessage playerTurnMessage = (PlayerTurnMessage)message;
-            Menu.Singleton.gameWindow.OutputText("Turn: " + lobby.players[playerTurnMessage.PlayerID].name);
+            
+            Menu.Singleton.gameWindow.OutputText("Current turn: " + lobby.players[playerTurnMessage.PlayerID].PlayerTextWithColorTag());
         }
 
         public void HandleRoomInfo(Message message) {
@@ -88,12 +89,12 @@ namespace Assets.Code.Client {
 
         public void HandlePlayerEnterRoom(Message message) {
             PlayerEnterRoomMessage playerEnterRoomMessage = (PlayerEnterRoomMessage)message;
-            Menu.Singleton.gameWindow.OutputText(lobby.players[playerEnterRoomMessage.PlayerID].name);
+            Menu.Singleton.gameWindow.OutputText("Player entered room:" + lobby.players[playerEnterRoomMessage.PlayerID].PlayerTextWithColorTag());
         }
 
         public void HandlePlayerLeaveRoom(Message message) {
             PlayerLeaveRoomMessage playerLeaveRoomMessage = (PlayerLeaveRoomMessage)message;
-            Menu.Singleton.gameWindow.OutputText(lobby.players[playerLeaveRoomMessage.PlayerID].name);
+            Menu.Singleton.gameWindow.OutputText("Player left room:" + lobby.players[playerLeaveRoomMessage.PlayerID].PlayerTextWithColorTag());
         }
 
         public void Move(int dir) {
