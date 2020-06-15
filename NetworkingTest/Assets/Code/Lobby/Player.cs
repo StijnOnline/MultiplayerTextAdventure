@@ -7,9 +7,12 @@ using UnityEngine;
 
 namespace Assets.Code {
     public class Player {
+        //Game
         public ushort health;
-        //only used by serverBehaviour
+        public ushort gold = 0;
         public Vector2Int position;
+        public bool leftDungeon = false;
+        public static ushort DEFAULT_DAMAGE = 3;
 
         public string name { get; set; } = null;
         public Color color {get; private set; }

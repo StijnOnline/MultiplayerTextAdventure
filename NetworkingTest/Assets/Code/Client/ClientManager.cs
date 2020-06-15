@@ -18,6 +18,21 @@ namespace Assets.Code.Client {
             DontDestroyOnLoad(gameObject);
         }
 
+        internal void ExitDungeon() {
+            clientBehaviour.QeueMessage(new LeaveDungeonRequestMessage());
+        }
+
+        internal void CollectTreasure() {
+            clientBehaviour.QeueMessage(new ClaimTreasureRequestMessage());
+        }
+
+        internal void Attack() {
+            clientBehaviour.QeueMessage(new AttackRequestMessage());
+        }
+
+        internal void Defend() {
+            clientBehaviour.QeueMessage(new DefendRequestMessage());
+        }
 
         public Lobby lobby { get; private set; } = new Lobby();
         public ClientBehaviour clientBehaviour { get; private set; }
@@ -78,6 +93,40 @@ namespace Assets.Code.Client {
             PlayerTurnMessage playerTurnMessage = (PlayerTurnMessage)message;
             
             Menu.Singleton.gameWindow.OutputText("Current turn: " + lobby.players[playerTurnMessage.PlayerID].PlayerTextWithColorTag());
+        }
+
+        internal void HandleObtainTreasure(Message message) {
+            ObtainTreasureMessage obtainTreasureMessage = (ObtainTreasureMessage)message;
+            Menu.Singleton.gameWindow.OutputText("Obtained " + obtainTreasureMessage.gold + " gold");
+        }
+
+        internal void HandleHitMonster(Message message) {
+            HitMonserMessage hitMonserMessage = (HitMonserMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[hitMonserMessage.PlayerID].PlayerTextWithColorTag() + " Hit a monster for " + hitMonserMessage.damage + " damage");
+        }
+
+        internal void HandleHitByMonster(Message message) {
+            HitByMonserMessage hitByMonserMessage = (HitByMonserMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[hitByMonserMessage.PlayerID].PlayerTextWithColorTag() + " was hit by a monster, current health is " + hitByMonserMessage.newHP);
+        }
+
+        internal void HandlePlayerDefends(Message message) {
+            PlayerDefendsMessage playerDefendsMessage = (PlayerDefendsMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[playerDefendsMessage.PlayerID].PlayerTextWithColorTag() + " defended and regenerated health, current health is " + playerDefendsMessage.newHP);
+        }
+
+        internal void HandlePlayerLeftDungeon(Message message) {
+            PlayerLeftDungeonMessage playerLeftDungeonMessage = (PlayerLeftDungeonMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[playerLeftDungeonMessage.PlayerID].PlayerTextWithColorTag() + " left the dungeon");
+        }
+
+        internal void HandlePlayerDies(Message message) {
+            PlayerDiesMessage playerDiesMessage = (PlayerDiesMessage)message;
+            Menu.Singleton.gameWindow.OutputText(lobby.players[playerDiesMessage.PlayerID].PlayerTextWithColorTag() + " died in the dungeon");
+        }
+
+        internal void HandleEndGame(Message message) {
+            throw new NotImplementedException();
         }
 
         public void HandleRoomInfo(Message message) {

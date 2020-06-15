@@ -70,6 +70,13 @@ public class ClientBehaviour {
         ClientCallbacks[(int)Message.MessageType.RoomInfo].AddListener(clientManager.HandleRoomInfo);
         ClientCallbacks[(int)Message.MessageType.PlayerEnterRoom].AddListener(clientManager.HandlePlayerEnterRoom);
         ClientCallbacks[(int)Message.MessageType.PlayerLeaveRoom].AddListener(clientManager.HandlePlayerLeaveRoom);
+        ClientCallbacks[(int)Message.MessageType.ObtainTreasure].AddListener(clientManager.HandleObtainTreasure);
+        ClientCallbacks[(int)Message.MessageType.HitMonster].AddListener(clientManager.HandleHitMonster);
+        ClientCallbacks[(int)Message.MessageType.HitByMonster].AddListener(clientManager.HandleHitByMonster);
+        ClientCallbacks[(int)Message.MessageType.PlayerDefends].AddListener(clientManager.HandlePlayerDefends);
+        ClientCallbacks[(int)Message.MessageType.PlayerLeftDungeon].AddListener(clientManager.HandlePlayerLeftDungeon);
+        ClientCallbacks[(int)Message.MessageType.PlayerDies].AddListener(clientManager.HandlePlayerDies);
+        ClientCallbacks[(int)Message.MessageType.EndGame].AddListener(clientManager.HandleEndGame);
     }
 
     public void Update() {
@@ -100,14 +107,13 @@ public class ClientBehaviour {
                     case Message.MessageType.RoomInfo: message = new RoomInfoMessage(); break;
                     case Message.MessageType.PlayerEnterRoom: message = new PlayerEnterRoomMessage(); break;
                     case Message.MessageType.PlayerLeaveRoom: message = new PlayerLeaveRoomMessage(); break;
-                    case Message.MessageType.ObtainTreasure: break;
-                    case Message.MessageType.HitMonster: break;
-                    case Message.MessageType.HitByMonster:   break;
-                    case Message.MessageType.PlayerDefends:break;
-                    case Message.MessageType.PlayerLeftDungeon: break;
-                    case Message.MessageType.PlayerDies:   break;
+                    case Message.MessageType.ObtainTreasure: message = new ObtainTreasureMessage(); break;
+                    case Message.MessageType.HitMonster: message = new HitMonserMessage(); break;
+                    case Message.MessageType.HitByMonster: message = new HitByMonserMessage(); break;
+                    case Message.MessageType.PlayerDefends: message = new PlayerDefendsMessage(); break;
+                    case Message.MessageType.PlayerLeftDungeon: message = new PlayerLeftDungeonMessage(); break;
+                    case Message.MessageType.PlayerDies: message = new PlayerDiesMessage(); break;
                     case Message.MessageType.EndGame:   break;
-                    case Message.MessageType.Count:  break;
                     default: break;
                 }
                 if(message != null) {

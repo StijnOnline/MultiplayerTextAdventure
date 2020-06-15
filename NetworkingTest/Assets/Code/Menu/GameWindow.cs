@@ -15,18 +15,21 @@ namespace Assets.Code {
         }
 
         public void ExitDungeon() {
-
+            ClientManager.SingleTon.ExitDungeon();
         }
 
         public void CollectTreasure() {
+            ClientManager.SingleTon.CollectTreasure();
 
         }
 
         public void Attack() {
+            ClientManager.SingleTon.Attack();
 
         }
 
         public void Defend() {
+            ClientManager.SingleTon.Defend();
 
         }
 

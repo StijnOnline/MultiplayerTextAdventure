@@ -22,7 +22,7 @@ public class ServerBehaviour {
 
     //Define Event
     public class AdressedMessageEvent : UnityEvent<AdressedMessage> { }
-    public AdressedMessageEvent[] ServerCallbacks = new AdressedMessageEvent[(int)Message.MessageType.Count - 1];
+    public AdressedMessageEvent[] ServerCallbacks = new AdressedMessageEvent[(int)Message.MessageType.Count ];
 
     private ServerManager serverManager;
 
@@ -59,6 +59,10 @@ public class ServerBehaviour {
         }
         ServerCallbacks[(int)Message.MessageType.SetName].AddListener(serverManager.HandleSetName);
         ServerCallbacks[(int)Message.MessageType.MoveRequest].AddListener(serverManager.HandleMoveRequest);
+        ServerCallbacks[(int)Message.MessageType.AttackRequest].AddListener(serverManager.HandleAttackRequest);
+        ServerCallbacks[(int)Message.MessageType.DefendRequest].AddListener(serverManager.HandleDefendRequest);
+        ServerCallbacks[(int)Message.MessageType.ClaimTreasureRequest].AddListener(serverManager.HandleClaimTreasureRequest);
+        ServerCallbacks[(int)Message.MessageType.LeaveDungeonRequest].AddListener(serverManager.HandleLeaveDungeonRequest);
 
         Debug.Log("Host Started");
     }
@@ -95,11 +99,10 @@ public class ServerBehaviour {
                         case Message.MessageType.None: break; //stay alive
                         case Message.MessageType.SetName: message = new SetNameMessage(); break;
                         case Message.MessageType.MoveRequest: message = new MoveRequestMessage(); break;
-                        case Message.MessageType.AttackRequest: break;
-                        case Message.MessageType.DefendRequest: break;
-                        case Message.MessageType.ClaimTreasureRequest: break;
-                        case Message.MessageType.LeaveDungeonRequest: break;
-                        case Message.MessageType.Count: break;
+                        case Message.MessageType.AttackRequest: message = new AttackRequestMessage(); break;
+                        case Message.MessageType.DefendRequest: message = new DefendRequestMessage(); break;
+                        case Message.MessageType.ClaimTreasureRequest: message = new ClaimTreasureRequestMessage(); break;
+                        case Message.MessageType.LeaveDungeonRequest: message = new LeaveDungeonRequestMessage(); break;
                         default: break;
                     }
                     if(message != null) {

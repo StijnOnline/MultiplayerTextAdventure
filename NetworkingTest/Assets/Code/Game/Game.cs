@@ -12,6 +12,8 @@ namespace Assets.Code.Server {
             this.serverManager = serverManager;
         }
         public bool started { get; private set; } = false;
+        public static ushort DEFEND_REGEN_HEALTH_AMOUNT = 3;
+
         public Room[,] map;
 
         const int mapSize = 3;
@@ -56,7 +58,7 @@ namespace Assets.Code.Server {
                     map[x, y] = new Room();
 
                     //Exit (always in corner)
-                    if(x == mapSize -1 && y == mapSize-1) {
+                    if(x == mapSize - 1 && y == mapSize - 1) {
                         map[x, y].exit = true;
                         continue;
                     }
@@ -81,6 +83,9 @@ namespace Assets.Code.Server {
                 currentTurnIndex = ++currentTurnIndex % serverManager.lobby.players.Count;
             else
                 currentTurnIndex = 0;
+            //skip left players
+            if(serverManager.lobby.players[GetCurrentTurnPlayerID()].leftDungeon)
+                StepTurn();
         }
 
 
@@ -89,6 +94,9 @@ namespace Assets.Code.Server {
         }
 
         public bool MovePlayer(int playerID, Directions moveDir) {
+            Room room = GetRoom(playerID);
+            if(room.monster != null)
+                return false;
             //player should not move in muliple directions
             //if it is requested it will only execute one (based on if order)
             Directions possible = GetPossibleDirections(serverManager.lobby.players[playerID].position);
@@ -104,9 +112,9 @@ namespace Assets.Code.Server {
             else //no possible move entered
                 return false;
 
-            GetRoom(playerID).playerIdsInRoom.Remove(playerID);
+            room.playerIdsInRoom.Remove(playerID);
             serverManager.lobby.players[playerID].position += move;
-            GetRoom(playerID).playerIdsInRoom.Add(playerID);
+            room.playerIdsInRoom.Add(playerID);
 
             StepTurn();
             return true;
@@ -144,9 +152,9 @@ namespace Assets.Code.Server {
             Directions d = 0;
             if(position.y > 0 && map[position.x, position.y - 1] != null)
                 d |= Directions.North;
-            if(position.x < mapSize -1 && map[position.x + 1, position.y] != null)
+            if(position.x < mapSize - 1 && map[position.x + 1, position.y] != null)
                 d |= Directions.East;
-            if(position.y < mapSize -1 && map[position.x, position.y + 1] != null)
+            if(position.y < mapSize - 1 && map[position.x, position.y + 1] != null)
                 d |= Directions.South;
             if(position.x > 0 && map[position.x - 1, position.y] != null)
                 d |= Directions.West;
@@ -160,6 +168,85 @@ namespace Assets.Code.Server {
             East = 2,
             South = 4,
             West = 8
+        }
+
+        public bool Attack(int connectionID) {
+            Room room = GetRoom(connectionID);
+            Player player = serverManager.lobby.players[connectionID];
+            ushort damage = Player.DEFAULT_DAMAGE;
+            if(room.monster == null)
+                return false;
+
+            if(room.monster.health - damage > 0) {
+                room.monster.health -= damage;
+                if(player.health - room.monster.damage > 0) {
+                    player.health -= room.monster.damage;
+                    serverManager.SendHitByMonsterMessage(connectionID, player.health);
+                } else {
+                    serverManager.SendPlayerDiedMessage(connectionID);
+                }
+            } else
+                room.monster = null;
+                //TODO no message in protocol to send monster died
+
+            serverManager.SendHitMonsterMessage(connectionID, damage);
+
+
+            StepTurn();
+            return true;
+        }
+
+        public bool Defend(int connectionID) {
+            Player player = serverManager.lobby.players[connectionID];
+            if(GetRoom(connectionID).monster == null)
+                return false;
+
+            player.health += DEFEND_REGEN_HEALTH_AMOUNT;
+            serverManager.SendPlayerDefendsMessage(connectionID, player.health);
+
+            StepTurn();
+            return true;
+        }
+
+        internal bool ClaimTreasure(int connectionID) {
+            Room room = GetRoom(connectionID);
+            if(room.treasure <= 0)
+                return false;
+
+            foreach(int playerID in room.playerIdsInRoom) {
+                if(playerID == connectionID) continue;
+                serverManager.lobby.players[playerID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
+                serverManager.SendObtainGold(playerID, (ushort)(room.treasure / room.playerIdsInRoom.Count));
+            }
+            serverManager.lobby.players[connectionID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
+            serverManager.lobby.players[connectionID].gold += (ushort)(room.treasure % room.playerIdsInRoom.Count); //give the player that claimed the treasure the remaining goldserverManager
+            serverManager.SendObtainGold(connectionID, (ushort)(room.treasure / room.playerIdsInRoom.Count + room.treasure % room.playerIdsInRoom.Count));
+            room.treasure = 0;
+
+            StepTurn();
+            return true;
+        }
+
+        internal bool LeaveDungeon(int connectionID) {
+            if(!GetRoom(connectionID).exit)
+                return false;
+
+            serverManager.lobby.players[connectionID].leftDungeon = true;
+
+            bool allLeft = true;
+            foreach(KeyValuePair<int, Player> player in serverManager.lobby.players) {
+                if(player.Key == connectionID) continue;
+                serverManager.SendPlayerLeftDungeon(connectionID);
+
+                if(!player.Value.leftDungeon)
+                    allLeft = false;
+            }
+
+            if(allLeft)
+                serverManager.EndGame();
+
+            StepTurn();
+            return true;
         }
     }
 }
