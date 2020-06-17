@@ -84,9 +84,10 @@ namespace Assets.Code.Client {
 
         public void HandleStartGame(Message message) {
             StartGameMessage startGameMessage = (StartGameMessage)message;
-            //set HP in UI
             Debug.Log("Game Started");
             Menu.Singleton.SetMenu(Menu.Menus.clientGame);
+            Menu.Singleton.gameWindow.UpdateHP(startGameMessage.startHealth);
+            Menu.Singleton.gameWindow.UpdateGold(0);
         }
 
         public void HandlePlayerTurn(Message message) {
@@ -97,7 +98,9 @@ namespace Assets.Code.Client {
 
         internal void HandleObtainTreasure(Message message) {
             ObtainTreasureMessage obtainTreasureMessage = (ObtainTreasureMessage)message;
+            lobby.You.Value.gold += obtainTreasureMessage.gold;
             Menu.Singleton.gameWindow.OutputText("Obtained " + obtainTreasureMessage.gold + " gold");
+            Menu.Singleton.gameWindow.UpdateGold(lobby.You.Value.gold);
         }
 
         internal void HandleHitMonster(Message message) {
@@ -108,11 +111,16 @@ namespace Assets.Code.Client {
         internal void HandleHitByMonster(Message message) {
             HitByMonserMessage hitByMonserMessage = (HitByMonserMessage)message;
             Menu.Singleton.gameWindow.OutputText(lobby.players[hitByMonserMessage.PlayerID].PlayerTextWithColorTag() + " was hit by a monster, current health is " + hitByMonserMessage.newHP);
+            if(hitByMonserMessage.PlayerID == lobby.You.Key)
+                Menu.Singleton.gameWindow.UpdateHP(hitByMonserMessage.newHP);
+            
         }
 
         internal void HandlePlayerDefends(Message message) {
             PlayerDefendsMessage playerDefendsMessage = (PlayerDefendsMessage)message;
             Menu.Singleton.gameWindow.OutputText(lobby.players[playerDefendsMessage.PlayerID].PlayerTextWithColorTag() + " defended and regenerated health, current health is " + playerDefendsMessage.newHP);
+            if(playerDefendsMessage.PlayerID == lobby.You.Key)
+                Menu.Singleton.gameWindow.UpdateHP(playerDefendsMessage.newHP);
         }
 
         internal void HandlePlayerLeftDungeon(Message message) {
@@ -125,9 +133,7 @@ namespace Assets.Code.Client {
             Menu.Singleton.gameWindow.OutputText(lobby.players[playerDiesMessage.PlayerID].PlayerTextWithColorTag() + " died in the dungeon");
         }
 
-        internal void HandleEndGame(Message message) {
-            throw new NotImplementedException();
-        }
+        
 
         public void HandleRoomInfo(Message message) {
             RoomInfoMessage roomInfoMessage = (RoomInfoMessage)message;
@@ -148,6 +154,13 @@ namespace Assets.Code.Client {
 
         public void Move(int dir) {
             clientBehaviour.QeueMessage(new MoveRequestMessage() { direction = (Server.Game.Directions)dir });
+        }
+
+        public void HandleEndGame(Message message) {
+            EndGameMessage endGameMessage = (EndGameMessage)message;
+            Menu.Singleton.SetMenu(Menu.Menus.score);
+            Menu.Singleton.score.SetLastGameScores(lobby, endGameMessage.scoreData);
+
         }
     }
 }

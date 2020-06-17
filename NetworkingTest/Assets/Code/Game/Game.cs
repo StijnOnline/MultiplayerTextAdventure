@@ -86,6 +86,7 @@ namespace Assets.Code.Server {
             //skip left players
             if(serverManager.lobby.players[GetCurrentTurnPlayerID()].leftDungeon)
                 StepTurn();
+            serverManager.SendTurn(GetCurrentTurnPlayerID());
         }
 
 
@@ -94,8 +95,7 @@ namespace Assets.Code.Server {
         }
 
         public bool MovePlayer(int playerID, Directions moveDir) {
-            Room room = GetRoom(playerID);
-            if(room.monster != null)
+            if(GetRoom(playerID).monster != null)
                 return false;
             //player should not move in muliple directions
             //if it is requested it will only execute one (based on if order)
@@ -112,9 +112,9 @@ namespace Assets.Code.Server {
             else //no possible move entered
                 return false;
 
-            room.playerIdsInRoom.Remove(playerID);
+            GetRoom(playerID).playerIdsInRoom.Remove(playerID);
             serverManager.lobby.players[playerID].position += move;
-            room.playerIdsInRoom.Add(playerID);
+            GetRoom(playerID).playerIdsInRoom.Add(playerID);
 
             StepTurn();
             return true;
@@ -210,15 +210,15 @@ namespace Assets.Code.Server {
 
         internal bool ClaimTreasure(int connectionID) {
             Room room = GetRoom(connectionID);
-            if(room.treasure <= 0)
+            if(room.treasure <= 0 || room.monster != null)
                 return false;
 
             foreach(int playerID in room.playerIdsInRoom) {
                 if(playerID == connectionID) continue;
-                serverManager.lobby.players[playerID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
+                 serverManager.lobby.players[playerID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
                 serverManager.SendObtainGold(playerID, (ushort)(room.treasure / room.playerIdsInRoom.Count));
             }
-            serverManager.lobby.players[connectionID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
+            if(room.playerIdsInRoom.Count > 0) serverManager.lobby.players[connectionID].gold += (ushort)(room.treasure / room.playerIdsInRoom.Count);
             serverManager.lobby.players[connectionID].gold += (ushort)(room.treasure % room.playerIdsInRoom.Count); //give the player that claimed the treasure the remaining goldserverManager
             serverManager.SendObtainGold(connectionID, (ushort)(room.treasure / room.playerIdsInRoom.Count + room.treasure % room.playerIdsInRoom.Count));
             room.treasure = 0;
@@ -243,10 +243,15 @@ namespace Assets.Code.Server {
             }
 
             if(allLeft)
-                serverManager.EndGame();
+                EndGame();
 
             StepTurn();
             return true;
+        }
+
+        private void EndGame() {
+            started = false;
+            //idk
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Code.Server {
-    public class ServerManager : MonoBehaviour{
+    public class ServerManager : MonoBehaviour {
         public static ServerManager Singleton;
         public void Awake() {
             if(Singleton != null && Singleton != this) {
@@ -52,13 +52,12 @@ namespace Assets.Code.Server {
                 serverBehaviour.QeueMessage(new AdressedMessage(new StartGameMessage() { startHealth = p.Value.health }, p.Key));
                 serverBehaviour.QeueMessage(new AdressedMessage(game.GetRoomInfo(p.Key), p.Key));
             }
-            SendTurn(game.GetCurrentTurnPlayerID());
         }
 
         public void SendTurn(int playerID) {
             foreach(var p in lobby.players) {
                 serverBehaviour.QeueMessage(new AdressedMessage(new PlayerTurnMessage() { PlayerID = playerID }, p.Key));
-            }            
+            }
         }
 
         //General checks before a request is processed
@@ -117,7 +116,7 @@ namespace Assets.Code.Server {
         public void HandleSetName(AdressedMessage adressedMessage) {
             if(game.started) {
                 SendRequestDenied(adressedMessage);
-                return; 
+                return;
             }
 
             SetNameMessage setNameMessage = (SetNameMessage)adressedMessage.message;
@@ -147,7 +146,7 @@ namespace Assets.Code.Server {
 
             if(game.MovePlayer(adressedMessage.connectionID, ((MoveRequestMessage)adressedMessage.message).direction)) {
 
-            //player left messages 
+                //player left messages 
                 foreach(int playerID in leftRoom.OtherPlayerIDs) {
                     serverBehaviour.QeueMessage(new AdressedMessage(new PlayerLeaveRoomMessage() { PlayerID = adressedMessage.connectionID }, playerID));
                 }
@@ -162,8 +161,6 @@ namespace Assets.Code.Server {
             } else {
                 SendRequestDenied(adressedMessage);
             }
-
-            SendTurn(game.GetCurrentTurnPlayerID());
         }
 
         public void HandleAttackRequest(AdressedMessage adressedMessage) {
@@ -171,40 +168,32 @@ namespace Assets.Code.Server {
                 SendRequestDenied(adressedMessage); return;
             }
 
-            if(game.Attack(adressedMessage.connectionID)) {
-
-                
-            } else {
+            if(!game.Attack(adressedMessage.connectionID))
                 SendRequestDenied(adressedMessage);
-            }
 
         }
 
         public void SendHitMonsterMessage(int connectionID, ushort damage) {
             foreach(KeyValuePair<int, Player> player in lobby.players) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new HitMonserMessage() { PlayerID = connectionID, damage = damage }, connectionID));
+                serverBehaviour.QeueMessage(new AdressedMessage(new HitMonserMessage() { PlayerID = connectionID, damage = damage }, player.Key));
             }
         }
 
         public void SendHitByMonsterMessage(int connectionID, ushort newHP) {
             foreach(KeyValuePair<int, Player> player in lobby.players) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new HitByMonserMessage() { PlayerID = connectionID , newHP = newHP}, connectionID));
+                serverBehaviour.QeueMessage(new AdressedMessage(new HitByMonserMessage() { PlayerID = connectionID, newHP = newHP }, player.Key));
             }
         }
 
         public void SendPlayerDefendsMessage(int connectionID, ushort newHP) {
             foreach(KeyValuePair<int, Player> player in lobby.players) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerDefendsMessage() { PlayerID = connectionID, newHP = newHP }, connectionID));
+                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerDefendsMessage() { PlayerID = connectionID, newHP = newHP }, player.Key));
             }
-        }
-
-        internal void SendObtainGold(ushort v) {
-            throw new NotImplementedException();
         }
 
         public void SendPlayerDiedMessage(int connectionID) {
             foreach(KeyValuePair<int, Player> player in lobby.players) {
-                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerDiesMessage() { PlayerID = connectionID }, connectionID));
+                serverBehaviour.QeueMessage(new AdressedMessage(new PlayerDiesMessage() { PlayerID = connectionID }, player.Key));
             }
         }
 
@@ -213,9 +202,9 @@ namespace Assets.Code.Server {
                 SendRequestDenied(adressedMessage); return;
             }
 
-            if( ! game.Defend(adressedMessage.connectionID))
+            if(!game.Defend(adressedMessage.connectionID))
                 SendRequestDenied(adressedMessage);
-            
+
         }
 
         public void HandleClaimTreasureRequest(AdressedMessage adressedMessage) {
@@ -227,8 +216,22 @@ namespace Assets.Code.Server {
                 SendRequestDenied(adressedMessage);
         }
 
-        internal void EndGame() {
-            throw new NotImplementedException();
+        public void GameEnded() {
+            EndGameMessage endGameMessage = new EndGameMessage();
+
+            foreach(KeyValuePair<int, Player> player in lobby.players) {
+                endGameMessage.scoreData.Add(new EndGameMessage.ScoreData {playerID = player.Key,gold = player.Value.gold });
+            }
+            endGameMessage.NumberOfScores = (byte)endGameMessage.scoreData.Count;
+            endGameMessage.scoreData.OrderBy(score => score.gold);
+
+            foreach(KeyValuePair<int, Player> player in lobby.players) {
+                serverBehaviour.QeueMessage(new AdressedMessage(endGameMessage, player.Key));
+            }
+
+
+            Menu.Singleton.SetMenu(Menu.Menus.score);
+            Menu.Singleton.score.SetLastGameScores(lobby, endGameMessage.scoreData);
         }
 
         public void HandleLeaveDungeonRequest(AdressedMessage adressedMessage) {

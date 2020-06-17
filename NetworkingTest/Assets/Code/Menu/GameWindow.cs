@@ -10,6 +10,14 @@ namespace Assets.Code {
         public TextMeshProUGUI hpText;
         public TextMeshProUGUI goldText;
 
+        public void UpdateHP(int HP) {
+            hpText.SetText("HP: " + HP);
+        }
+
+        public void UpdateGold(int gold) {
+            goldText.SetText("Gold: " + gold);
+        }
+
         public void Move(int dir) {
             ClientManager.SingleTon.Move(dir);
         }

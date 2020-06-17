@@ -13,7 +13,7 @@ namespace Assets.Code {
             int playerCount = 0;
             foreach(KeyValuePair<int,Player> playerKeyPair in lobby.players) {
                 playerTextBoxes[playerCount].SetText(playerKeyPair.Value.name);
-                playerTextBoxes[playerCount].fontStyle = (lobby.you == playerKeyPair.Key ? FontStyles.Underline:FontStyles.Normal);
+                playerTextBoxes[playerCount].fontStyle = (lobby.You.Key == playerKeyPair.Key ? FontStyles.Underline:FontStyles.Normal);
                 playerTextBoxes[playerCount].color = playerKeyPair.Value.color;
                 playerTextBoxes[playerCount].alpha = 1;
                 playerCount++;

@@ -12,27 +12,8 @@ public class Login : MonoBehaviour {
     [SerializeField] private TMP_InputField password;
     [SerializeField] private TextMeshProUGUI failed;
 
-    public static string SessionID = null;
     public static string Username = null;
     private bool awaitingRequest = false;
-
-    //old not async
-    /*private void TryLogin() {
-        HttpWebRequest myReq =(HttpWebRequest)WebRequest.Create("http://database.stijn.online/playerLogin.php?email=" + email.text + "&password=" + password.text);
-        HttpWebResponse response = (HttpWebResponse)myReq.GetResponse();
-        StreamReader reader = new StreamReader(response.GetResponseStream());
-
-        string responseText = reader.ReadToEnd();
-        Debug.Log("SessionID: " + responseText);
-        if(responseText == "Incorrect Login Info") {
-            failed.text = "Incorrect Login Info";
-            StartCoroutine(resetFailedText());
-        } else {
-            SessionID = responseText;
-            Username = email.text; //change to actual username
-            Menu.Instance.SetMenu(Menu.Menus.clientConnect);
-        }
-    }*/
 
     public void LoginButton() {
         GetHttpAsync();
@@ -51,8 +32,7 @@ public class Login : MonoBehaviour {
                     string content = await result.Content.ReadAsStringAsync();
                     Debug.Log("SessionID: " + content);
                     if(content != "Incorrect Login Info") {
-                        SessionID = content;
-                        Username = email.text; //todo get actual username
+                        Username = content;
                         Menu.Singleton.SetMenu(Menu.Menus.clientConnect);
                     } else {
                         failed.text = "Incorrect Login Info";

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Assets.Code {
     public class Lobby {
 
-        public int you { get; private set; }
+        private int you;
+        public KeyValuePair<int,Player> You { get { return new KeyValuePair<int, Player>(you, players[you]); } }
         public Dictionary<int, Player> players = new Dictionary<int, Player>(); //should i make it private and create access functions?
         
         /// <summary>

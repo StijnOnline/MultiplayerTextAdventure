@@ -13,6 +13,8 @@ public class Menu : MonoBehaviour {
     [SerializeField] private GameObject clientLobby;
     [SerializeField] private LobbyWindow[] LobbyWindows;
     [SerializeField] private GameObject clientGame;
+    [SerializeField] private GameObject scoreMenu;
+    public Scores score;
     public GameWindow gameWindow;
     private Menus lastToggleMenu;
 
@@ -22,7 +24,8 @@ public class Menu : MonoBehaviour {
         clientLogin,
         clientConnect,
         clientLobby,
-        clientGame
+        clientGame,
+        score
     }
     private Menus currentMenu;
     public static Menu Singleton;
@@ -72,6 +75,14 @@ public class Menu : MonoBehaviour {
         ServerManager.Singleton.StartGame();
     }
 
+    public void ViewScores() {
+        SetMenu(Menus.score);
+    }
+
+    public void Home() {
+        SetMenu(Menus.chooseMenu);
+    }
+
     public void SetMenu(Menus menu) {
         currentMenu = menu;
 
@@ -84,7 +95,8 @@ public class Menu : MonoBehaviour {
         clientLogin.SetActive(menu == Menus.clientLogin);
         clientConnect.SetActive(menu == Menus.clientConnect);
         clientLobby.SetActive(menu == Menus.clientLobby);
-        clientGame.SetActive(menu == Menus.clientGame);        
+        clientGame.SetActive(menu == Menus.clientGame);
+        scoreMenu.SetActive(menu == Menus.score);        
 
         if(ServerManager.Singleton != null)
             toggleViewButton.SetActive(menu == Menus.hostOutput || menu == Menus.clientLobby || menu == Menus.clientGame);        
