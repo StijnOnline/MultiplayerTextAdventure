@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using System.Diagnostics;
 
 namespace Assets.Code.Server {
     public class Game {
@@ -79,6 +80,8 @@ namespace Assets.Code.Server {
 
 
         private void StepTurn() {
+            if(started == false) return;
+
             if(serverManager.lobby.players.Count > 1)
                 currentTurnIndex = ++currentTurnIndex % serverManager.lobby.players.Count;
             else
@@ -186,8 +189,8 @@ namespace Assets.Code.Server {
                     serverManager.SendPlayerDiedMessage(connectionID);
                 }
             } else
-                room.monster = null;
-                //TODO no message in protocol to send monster died
+                room.monster = null;             
+                    //TODO no message in protocol to send monster died
 
             serverManager.SendHitMonsterMessage(connectionID, damage);
 
@@ -235,22 +238,22 @@ namespace Assets.Code.Server {
 
             bool allLeft = true;
             foreach(KeyValuePair<int, Player> player in serverManager.lobby.players) {
-                if(player.Key == connectionID) continue;
-                serverManager.SendPlayerLeftDungeon(connectionID);
-
                 if(!player.Value.leftDungeon)
                     allLeft = false;
+                if(player.Key != connectionID)
+                    serverManager.SendPlayerLeftDungeon(connectionID);                
             }
 
-            if(allLeft)
+            if(allLeft) 
                 EndGame();
-
-            StepTurn();
+            else
+                StepTurn();
             return true;
         }
 
         private void EndGame() {
             started = false;
+            serverManager.GameEnded();
             //idk
         }
     }

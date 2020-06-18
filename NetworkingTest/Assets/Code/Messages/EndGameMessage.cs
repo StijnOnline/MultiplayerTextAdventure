@@ -10,7 +10,7 @@ namespace Assets.Code {
         public override MessageType Type => MessageType.EndGame;
 
         public byte NumberOfScores;
-        public List<ScoreData> scoreData;
+        public List<ScoreData> scoreData = new List<ScoreData>();
 
         public class ScoreData {
             public int playerID;

@@ -4,6 +4,7 @@ using System.Net.Http;
 using TMPro;
 using UnityEngine;
 using Newtonsoft.Json;
+using System;
 
 namespace Assets.Code {
 
@@ -20,6 +21,7 @@ namespace Assets.Code {
 
         private string SessionID;
         private int getStatisticsAttempts = 0;
+        private int uploadAttempts = 0;
 
         //not great implementation
         public void SetLastGameScores(Lobby lobby, List<EndGameMessage.ScoreData> scores) {
@@ -130,6 +132,40 @@ namespace Assets.Code {
             public class TopSecond {
                 public string username;
                 public int Second;
+            }
+        }
+        
+
+        /// <param name="orderedPlayerIDs">the playersIDs in the order they won</param>
+        public async void UploadScore(int[] orderedPlayerIDs) {
+            //TODO The game does not know the database IDs of the players
+            uploadAttempts++;
+            string url = "http://database.stijn.online/insertScore.php?PHPSESSID=" + SessionID;
+            url += "&first=" + orderedPlayerIDs[0];
+            url += "&second=" + orderedPlayerIDs[1];
+            url += "&third=" + orderedPlayerIDs[2];
+            url += "&fourth=" + orderedPlayerIDs[3];
+            using(var client = new HttpClient()) {
+                client.Timeout = System.TimeSpan.FromSeconds(10);
+                try {
+                    var result = await client.GetAsync(url);
+                    if(result.IsSuccessStatusCode) {
+                        string content = await result.Content.ReadAsStringAsync();
+                        if(content != "Please Login") {
+                            Debug.Log("Success");
+                        } else {
+                            ServerLogin();
+                            if(uploadAttempts < 5)
+                                UploadScore(orderedPlayerIDs);
+                        }
+                    } else {
+                        failed.text = "Request Failed";
+                        StartCoroutine(resetFailedText());
+                    }
+                } catch(System.Exception e) {
+                    failed.text = "Request Timed Out";
+                    StartCoroutine(resetFailedText());
+                }
             }
         }
     }

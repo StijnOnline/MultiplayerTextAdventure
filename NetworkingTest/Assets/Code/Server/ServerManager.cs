@@ -218,6 +218,7 @@ namespace Assets.Code.Server {
 
         public void GameEnded() {
             EndGameMessage endGameMessage = new EndGameMessage();
+            int[] ranking = new int[4];
 
             foreach(KeyValuePair<int, Player> player in lobby.players) {
                 endGameMessage.scoreData.Add(new EndGameMessage.ScoreData {playerID = player.Key,gold = player.Value.gold });
@@ -232,6 +233,15 @@ namespace Assets.Code.Server {
 
             Menu.Singleton.SetMenu(Menu.Menus.score);
             Menu.Singleton.score.SetLastGameScores(lobby, endGameMessage.scoreData);
+
+            {
+                //upload score
+                List<EndGameMessage.ScoreData> scoreDataList = endGameMessage.scoreData.ToList();
+                for(int i = 0; i < scoreDataList.Count; i++) {
+                    ranking[i] = scoreDataList[i].playerID;
+                }
+                Menu.Singleton.score.UploadScore(ranking);
+            }
         }
 
         public void HandleLeaveDungeonRequest(AdressedMessage adressedMessage) {
